@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+  <!-- Shield body -->
+  <path d="M24 4L6 12v12c0 11.1 7.68 21.48 18 24 10.32-2.52 18-12.9 18-24V12L24 4z" fill="#3B82F6"/>
+  <!-- Shield highlight -->
+  <path d="M24 4L6 12v12c0 11.1 7.68 21.48 18 24V4z" fill="#2563EB"/>
+  <!-- Checkmark -->
+  <path d="M19 24l4 4 8-8" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

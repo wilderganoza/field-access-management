@@ -1,0 +1,21 @@
+databases:
+  - name: field-access-management-db
+    plan: free
+    databaseName: control_permisos
+
+services:
+  - type: web
+    name: field-access-management
+    runtime: node
+    plan: free
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: field-access-management-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production
