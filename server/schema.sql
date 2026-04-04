@@ -152,3 +152,27 @@ DO $$ BEGIN
 
   END IF;
 END $$;
+
+-- ============================================= --
+-- CREAR USUARIO ADMIN INICIAL (solo primera vez)
+-- ============================================= --
+DO $$ BEGIN
+  IF (SELECT COUNT(*) FROM users) = 0 THEN
+    INSERT INTO users (
+      username, password, role, full_name, email, department, position, is_active
+    ) VALUES (
+      'admin',
+      '$2b$10$1DGxlJreLkrww4krH8YXW.oL7l6jHzCwvxyeleCNZ/zwdIICnlOce',
+      'admin',
+      'Administrador',
+      '',
+      '',
+      '',
+      TRUE
+    );
+
+    INSERT INTO user_settings (user_id)
+    SELECT id FROM users WHERE username = 'admin'
+    ON CONFLICT (user_id) DO NOTHING;
+  END IF;
+END $$;
