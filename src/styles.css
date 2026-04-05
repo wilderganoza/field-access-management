@@ -1244,6 +1244,10 @@ code,
   color: var(--color-text-muted);
 }
 
+.markdown-content hr {
+  display: none;
+}
+
 .mobile-menu-btn {
   display: none;
   position: fixed;
