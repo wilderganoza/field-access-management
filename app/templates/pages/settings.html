@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración · {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row">
+    <div>
+      <h1 class="page-title">Configuración</h1>
+      <p class="page-subtitle">Conexión con el proveedor de inteligencia artificial</p>
+    </div>
+  </div>
+</div>
+
+{% include "partials/settings_panel.html" %}
+{% endblock %}

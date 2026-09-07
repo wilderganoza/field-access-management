@@ -1,0 +1,49 @@
+<div id="roles-table" class="table-card">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Perfil</th>
+        <th>Clave</th>
+        <th>Descripción</th>
+        <th class="u-right">Cuentas</th>
+        <th class="u-right">Acciones</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for r in roles %}
+        <tr>
+          <td>
+            <a class="link" href="/admin/roles/{{ r.id }}">{{ r.name }}</a>
+            {% if r.is_system %}<span class="badge info">Sistema</span>{% endif %}
+          </td>
+          <td><code>{{ r.key }}</code></td>
+          <td class="u-muted">{{ r.description or '—' }}</td>
+          <td class="u-right">{{ uso.get(r.id, 0) }}</td>
+          <td class="u-right">
+            <a class="btn btn-sm" href="/admin/roles/{{ r.id }}">Permisos</a>
+
+            {# Un perfil de sistema, o uno que alguien esté usando, no se
+               ofrece para borrar: el servidor lo impide igualmente, pero
+               ofrecer un botón que siempre falla es peor que no ofrecerlo. #}
+            {% if not r.is_system and uso.get(r.id, 0) == 0 %}
+              <button class="btn btn-sm btn-danger"
+                      hx-delete="/admin/roles/{{ r.id }}"
+                      hx-target="#roles-table"
+                      hx-swap="outerHTML"
+                      hx-confirm="¿Eliminar el perfil «{{ r.name }}»?">
+                Eliminar
+              </button>
+            {% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="5" class="empty-state">
+            <p class="empty-state-title">Todavía no hay perfiles</p>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

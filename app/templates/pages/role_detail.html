@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}{{ role.name }} · Perfiles · {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row">
+    <div>
+      <h1 class="page-title">{{ role.name }}</h1>
+      <p class="page-subtitle">
+        <code>{{ role.key }}</code>
+        {% if role.is_system %} · <span class="badge info">Perfil de sistema</span>{% endif %}
+      </p>
+    </div>
+    <a class="btn btn-sm" href="/admin/roles">Volver</a>
+  </div>
+</div>
+
+<form class="role-editor-form"
+      hx-post="/admin/roles/{{ role.id }}"
+      hx-target="#roles-table"
+      hx-swap="outerHTML">
+
+  <div class="card">
+    <div class="form-3col">
+      <div class="form-group">
+        <label for="role-name">Nombre</label>
+        <input class="input" type="text" id="role-name" name="name"
+               value="{{ role.name }}" required />
+      </div>
+
+      <div class="form-group full">
+        <label for="role-description">Descripción</label>
+        <input class="input" type="text" id="role-description" name="description"
+               value="{{ role.description }}" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card table-card permissions-card">
+    <table class="data-table permissions-table">
+      <thead>
+        <tr>
+          <th>Módulo</th>
+          {% for clave, etiqueta, _ in acciones %}
+            <th class="u-center">
+              {{ etiqueta }}
+              {# Marcar la columna entera de una vez: con 55 módulos, ir casilla
+                 por casilla para dar "ver" a todo es media pantalla de clics. #}
+              <br />
+              <button type="button" class="link-btn" data-columna="{{ clave }}">todo</button>
+            </th>
+          {% endfor %}
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for m in modules %}
+          {% set p = concedido.get(m.id) %}
+          <tr class="{{ 'submodule-row' if m.parent_id else 'module-row' }}">
+            <td>
+              {% if m.parent_id %}<span class="tree-branch">└</span>{% endif %}
+              {{ m.name }}
+              {% if m.table_name %}
+                <code class="u-muted u-small">{{ m.table_name }}</code>
+              {% endif %}
+            </td>
+
+            {% for clave, etiqueta, columna in acciones %}
+              <td class="u-center">
+                <input type="checkbox"
+                       name="perm-{{ m.id }}-{{ clave }}"
+                       data-columna="{{ clave }}"
+                       {% if p and p[columna] %}checked{% endif %} />
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="role-editor-actions">
+    <a class="btn btn-sm" href="/admin/roles">Cancelar</a>
+    <button type="submit" class="btn btn-sm btn-primary">Guardar permisos</button>
+  </div>
+</form>
+
+<script>
+  // Marcar o desmarcar una columna entera. Sin esto, dar "ver" a los 55 módulos
+  // de FDP son 55 clics, y es lo primero que se hace al crear un perfil.
+  (function () {
+    document.querySelectorAll('[data-columna]').forEach(function (boton) {
+      if (boton.tagName !== 'BUTTON') return;
+
+      boton.addEventListener('click', function () {
+        var columna = boton.getAttribute('data-columna');
+        var casillas = document.querySelectorAll(
+          'input[type=checkbox][data-columna="' + columna + '"]');
+
+        // Si ya estaban todas marcadas, el botón las quita: el mismo control
+        // sirve para las dos cosas
+        var todas = Array.prototype.every.call(casillas, function (c) { return c.checked; });
+
+        casillas.forEach(function (c) { c.checked = !todas; });
+      });
+    });
+
+    // Marcar un módulo padre marca sus hijos: es lo que se espera al dar
+    // acceso a "Assets" entero, y luego se puede afinar quitando alguno.
+    document.querySelectorAll('tr.module-row input[type=checkbox]').forEach(function (padre) {
+      padre.addEventListener('change', function () {
+        var fila = padre.closest('tr');
+        var columna = padre.getAttribute('data-columna');
+        var siguiente = fila.nextElementSibling;
+
+        while (siguiente && siguiente.classList.contains('submodule-row')) {
+          var hijo = siguiente.querySelector(
+            'input[type=checkbox][data-columna="' + columna + '"]');
+
+          if (hijo) hijo.checked = padre.checked;
+
+          siguiente = siguiente.nextElementSibling;
+        }
+      });
+    });
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,51 @@
+<div id="prompt-editor" class="prompt-layout">
+
+  <form class="card prompt-form"
+        hx-post="/prompts"
+        hx-target="#saved-zone"
+        hx-swap="innerHTML">
+
+    <div class="prompt-status">
+      {% if is_custom %}
+        <span class="badge warning">Personalizada</span>
+        <span class="prompt-date">
+          Editada el {{ updated_at.strftime('%d/%m/%Y a las %H:%M') }} h
+        </span>
+      {% else %}
+        <span class="prompt-date">Sin modificaciones</span>
+      {% endif %}
+    </div>
+
+    <textarea class="textarea prompt-textarea" name="content" spellcheck="false"
+              aria-label="Contenido de la plantilla">{{ content }}</textarea>
+
+    <div id="saved-zone"></div>
+
+    <div class="card-footer">
+      {% if is_custom %}
+        <button type="button" class="btn btn-sm"
+                hx-post="/prompts/reset"
+                hx-target="#prompt-editor"
+                hx-swap="outerHTML"
+                hx-confirm="¿Restaurar la plantilla de fábrica? Se perderán los cambios guardados.">
+          Restaurar la de fábrica
+        </button>
+      {% endif %}
+      <button type="submit" class="btn btn-sm btn-primary">Guardar plantilla</button>
+    </div>
+  </form>
+
+  <aside class="card prompt-help">
+    <h2 class="card-title">Variables disponibles</h2>
+    <p class="prompt-help-intro">
+      Se sustituyen automáticamente al ejecutar el análisis. Escríbelas entre llaves dobles.
+    </p>
+    <dl class="variables-list">
+      {% for name, description in variables %}
+        <dt><code>{{ '{{' }}{{ name }}{{ '}}' }}</code></dt>
+        <dd>{{ description }}</dd>
+      {% endfor %}
+    </dl>
+  </aside>
+
+</div>

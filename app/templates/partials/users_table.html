@@ -1,0 +1,126 @@
+<div id="users-table" class="users-list-wrap">
+  {% for u in users %}
+    <div class="card user-card">
+      <button type="button" class="user-header user-header-button"
+              data-modal-open="edit-user-{{ u.id }}"
+              aria-label="Editar usuario {{ u.full_name or u.email }}">
+        <span class="avatar">{{ (u.full_name or u.email)[0]|upper }}</span>
+
+        <span class="user-info-block">
+          <span class="user-title">
+            {{ u.full_name or u.username or 'Sin nombre' }}
+
+            {% if u.role %}
+              <span class="badge {{ 'primary' if u.role.key == 'admin' else 'neutral' }}">
+                {{ u.role.name }}
+              </span>
+            {% else %}
+              <span class="badge warning">Sin perfil</span>
+            {% endif %}
+
+            {% if not u.is_active %}<span class="badge danger">Inactivo</span>{% endif %}
+            {% if u.must_change_password %}<span class="badge warning">Debe cambiar contraseña</span>{% endif %}
+            {% if u.id == current_user.id %}<span class="badge info">Tú</span>{% endif %}
+          </span>
+
+          <span class="user-meta">
+            {{ u.email }}{% if u.username %} · {{ u.username }}{% endif %}
+            {% if u.department %} · {{ u.department }}{% endif %}
+          </span>
+        </span>
+
+        <span class="user-last-access">
+          {% if u.last_login_at %}
+            Última entrada {{ u.last_login_at.strftime('%d/%m/%Y') }}
+          {% else %}
+            Nunca entró
+          {% endif %}
+        </span>
+      </button>
+    </div>
+
+    <div class="app-modal" id="edit-user-{{ u.id }}" hidden
+         role="dialog" aria-modal="true" aria-labelledby="edit-user-title-{{ u.id }}"
+         data-modal-overlay>
+      <div class="modal-dialog">
+        <form class="modal-form"
+            hx-post="/users/{{ u.id }}"
+            hx-target="#users-table"
+            hx-swap="outerHTML">
+
+        <div class="modal-header">
+          <div>
+            <h2 class="card-title" id="edit-user-title-{{ u.id }}">Editar usuario</h2>
+            <p class="modal-subtitle">{{ u.email }}</p>
+          </div>
+          <button type="button" class="icon-btn" data-modal-close aria-label="Cerrar">✕</button>
+        </div>
+
+        <div class="modal-body user-form-grid">
+          <div class="form-group">
+            <label for="name-{{ u.id }}">Nombre completo</label>
+            <input class="input" type="text" id="name-{{ u.id }}" name="full_name"
+                   value="{{ u.full_name }}" />
+          </div>
+
+          <div class="form-group">
+            <label for="dept-{{ u.id }}">Área</label>
+            <input class="input" type="text" id="dept-{{ u.id }}" name="department"
+                   value="{{ u.department }}" />
+          </div>
+
+          <div class="form-group">
+            <label for="pos-{{ u.id }}">Cargo</label>
+            <input class="input" type="text" id="pos-{{ u.id }}" name="position"
+                   value="{{ u.position }}" />
+          </div>
+
+          <div class="form-group">
+            <label for="role-{{ u.id }}">Perfil</label>
+            <select class="select" id="role-{{ u.id }}" name="role_id">
+              {% for r in roles %}
+                <option value="{{ r.id }}" {% if r.id == u.role_id %}selected{% endif %}>
+                  {{ r.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="check-inline">
+              <input type="checkbox" name="is_active" {% if u.is_active %}checked{% endif %} />
+              <span>Cuenta activa</span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="check-inline">
+              <input type="checkbox" name="reset_password" />
+              <span>Restablecer contraseña</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          {% if u.id != current_user.id %}
+            <button type="button" class="btn btn-sm btn-danger u-push"
+                    hx-delete="/users/{{ u.id }}"
+                    hx-target="#users-table"
+                    hx-swap="outerHTML"
+                    hx-confirm="¿Eliminar la cuenta de {{ u.email }}?">
+              Eliminar
+            </button>
+          {% endif %}
+
+          <button type="button" class="btn btn-sm" data-modal-close>Cancelar</button>
+          <button type="submit" class="btn btn-sm btn-primary">Guardar</button>
+        </div>
+        </form>
+      </div>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <p class="empty-state-title">Todavía no hay cuentas</p>
+    </div>
+  {% endfor %}
+</div>

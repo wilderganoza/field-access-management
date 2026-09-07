@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Historial · {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row">
+    <div>
+      <h1 class="page-title">Historial</h1>
+      <p class="page-subtitle">Solicitudes procesadas por el equipo</p>
+    </div>
+  </div>
+</div>
+
+{# Los filtros recargan solo la tabla, sin repintar la página entera #}
+<form class="filter-bar"
+      hx-get="/history"
+      hx-target="#history-table"
+      hx-swap="outerHTML"
+      hx-trigger="submit"
+      hx-push-url="true">
+
+  <div class="filter-field">
+    <label class="filter-label" for="search">Buscar</label>
+    <input class="input input-sm" type="search" id="search" name="search"
+           value="{{ filter_search }}" placeholder="Nombre, asunto o remitente" />
+  </div>
+
+  <div class="filter-field">
+    <label class="filter-label" for="case_filter">Caso</label>
+    <select class="select select-sm" id="case_filter" name="case_filter">
+      <option value="">Todos</option>
+      {% for c in cases %}
+        <option value="{{ c.id }}" {% if filter_case == c.id %}selected{% endif %}>
+          {{ c.icon }} {{ c.name }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="filter-field">
+    <label class="filter-label" for="verdict">Veredicto</label>
+    <select class="select select-sm" id="verdict" name="verdict">
+      <option value="">Todos</option>
+      {% for v in ['APROBADO', 'PENDIENTE', 'RECHAZADO'] %}
+        <option value="{{ v }}" {% if filter_verdict == v %}selected{% endif %}>{{ v|capitalize }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  {# Las dos acciones al final, alineadas con la base de los campos. Aplicar
+     lleva el mismo icono de embudo que la aplicacion hermana. #}
+  <div class="filter-actions">
+    <a href="/history" class="btn btn-sm">Limpiar</a>
+
+    <button type="submit" class="btn btn-sm btn-primary">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+      </svg>
+      Aplicar
+    </button>
+  </div>
+</form>
+
+{% include "partials/history_table.html" %}
+{% endblock %}

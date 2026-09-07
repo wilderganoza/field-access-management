@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}No encontrado · {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="empty-state">
+  <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+  <p class="empty-state-title">No encontramos esa solicitud</p>
+  <p class="empty-state-text">Puede que se haya eliminado o que el enlace esté mal.</p>
+  <a href="/history" class="btn btn-sm">Ver el historial</a>
+</div>
+{% endblock %}

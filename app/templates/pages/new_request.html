@@ -1,0 +1,526 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva solicitud · {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row">
+    <div>
+      <h1 class="page-title">Nueva solicitud</h1>
+      <p class="page-subtitle">Carga los documentos y elige el caso de validación</p>
+    </div>
+  </div>
+</div>
+
+{% if not ai_available %}
+<div class="status-message warning" role="alert">
+  El servicio de IA no está configurado en el servidor. El análisis estará
+  deshabilitado hasta que un administrador configure la credencial de IA.
+</div>
+{% endif %}
+
+<form id="analysis-form"
+      hx-post="/analyze"
+      hx-encoding="multipart/form-data"
+      hx-target="#result-zone"
+      hx-swap="innerHTML"
+      hx-disabled-elt="#analyze-btn">
+
+  <div class="card">
+    <div class="form-group">
+      <label for="request_name">Nombre de la solicitud <span class="required">*</span></label>
+      <input class="input" type="text" id="request_name" name="request_name"
+             required minlength="3" maxlength="255"
+             placeholder="Con qué vas a reconocer esta solicitud en el historial"
+             autocomplete="off" />
+    </div>
+
+    <div class="form-group">
+      <label>Caso de validación</label>
+      <div class="case-grid">
+        {% for case in cases %}
+          <label class="case-option">
+            <input type="radio" name="case_id" value="{{ case.id }}"
+                   {% if loop.first %}checked{% endif %} required />
+            <span class="case-card">
+              <span class="case-icon" style="background: {{ case.color }}22; color: {{ case.color }};">
+                {{ case.icon }}
+              </span>
+              <span class="case-body">
+                <span class="case-name">{{ case.name }}</span>
+                <span class="case-desc">{{ case.description }}</span>
+                <span class="case-count">{{ case.checklist|length }} verificaciones</span>
+              </span>
+            </span>
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Documentos</label>
+
+      <div id="dropzone" class="dropzone" tabindex="0" role="button"
+           aria-label="Zona para soltar archivos">
+        <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M12 10v6m0 0l-3-3m3 3l3-3M3 17v3a2 2 0 002 2h14a2 2 0 002-2v-3M14 2H6a2 2 0 00-2 2v12M14 2l6 6M14 2v6h6" />
+        </svg>
+        <p class="dropzone-title">Arrastra archivos o carpetas aquí</p>
+        <p class="dropzone-hint">
+          Correos .eml, comprimidos .zip o .rar, PDF, Word, Excel e imágenes.
+          El contenido de ZIP y RAR, incluso anidado, también se analizará.
+          Máximo {{ max_upload_mb }} MB en total.
+        </p>
+        {# El selector trabaja en modo carpeta y entrega recursivamente todo su
+           contenido. Los archivos sueltos también pueden arrastrarse a la zona. #}
+        <div class="dropzone-actions">
+          <button type="button" class="btn btn-sm" id="browse-btn">Seleccionar carpeta</button>
+        </div>
+
+        <div id="file-load-status" class="file-load-status" hidden aria-live="polite">
+          <div class="file-load-status-row">
+            <span class="spinner-inline file-load-spinner" aria-hidden="true"></span>
+            <span id="file-load-message">Preparando archivos…</span>
+            <span id="file-load-count" class="file-load-count"></span>
+          </div>
+          <progress id="file-load-progress" class="file-load-progress" max="100"></progress>
+        </div>
+      </div>
+
+      <input type="file" id="files" name="files" multiple hidden
+             accept=".eml,.pdf,.docx,.doc,.xlsx,.xls,.png,.jpg,.jpeg,.zip,.txt,.rar" />
+      <input type="file" id="folders" multiple hidden webkitdirectory directory
+             accept=".eml,.pdf,.docx,.doc,.xlsx,.xls,.png,.jpg,.jpeg,.zip,.txt,.rar" />
+
+      <ul id="file-list" class="file-list"></ul>
+    </div>
+
+    <div class="card-footer">
+      <button type="submit" class="btn btn-primary btn-lg" id="analyze-btn" disabled>
+        <span class="btn-label">Analizar documentos</span>
+        <span class="spinner-inline"></span>
+      </button>
+    </div>
+  </div>
+</form>
+
+<div id="result-zone" class="analysis-result-zone"></div>
+
+{# Pantalla de espera mientras corre el análisis, que puede tardar minutos #}
+<div id="analysis-overlay" class="analysis-overlay" hidden>
+  <div class="analysis-box">
+    <div id="analysis-spinner" class="spinner"></div>
+    <p id="analysis-title" class="analysis-title">Analizando documentos</p>
+    <p id="analysis-hint" class="analysis-hint">
+      La IA está leyendo cada archivo y evaluando el checklist.<br />
+      Con muchos documentos puede tardar varios minutos.
+    </p>
+    <div id="upload-progress-wrap" class="upload-progress-wrap" hidden>
+      <progress id="upload-progress" class="file-load-progress" max="100" value="0"></progress>
+      <span id="upload-progress-label">0%</span>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  "use strict";
+
+  const input = document.getElementById("files");
+  const inputCarpetas = document.getElementById("folders");
+  const dropzone = document.getElementById("dropzone");
+  const lista = document.getElementById("file-list");
+  const btnExaminar = document.getElementById("browse-btn");
+  const btnAnalizar = document.getElementById("analyze-btn");
+  const estadoCarga = document.getElementById("file-load-status");
+  const mensajeCarga = document.getElementById("file-load-message");
+  const contadorCarga = document.getElementById("file-load-count");
+  const progresoCarga = document.getElementById("file-load-progress");
+
+  // El campo del nombre. Va aqui arriba con el resto: declarado mas abajo
+  // quedaria en zona muerta y `pintarLista()` lanzaria al correr antes.
+  const campoNombre = document.getElementById("request_name");
+  const overlay = document.getElementById("analysis-overlay");
+  const tituloAnalisis = document.getElementById("analysis-title");
+  const pistaAnalisis = document.getElementById("analysis-hint");
+  const progresoEnvioWrap = document.getElementById("upload-progress-wrap");
+  const progresoEnvio = document.getElementById("upload-progress");
+  const etiquetaProgresoEnvio = document.getElementById("upload-progress-label");
+  const maxBytes = {{ max_upload_mb }} * 1024 * 1024;
+  const iaDisponible = {{ "true" if ai_available else "false" }};
+
+  // Conservamos archivo y ruta por separado. DataTransfer no garantiza mantener
+  // webkitRelativePath al acumular tandas, y esa ruta distingue dos archivos con
+  // el mismo nombre que viven en carpetas diferentes.
+  let archivosSeleccionados = [];
+  let cargandoArchivos = false;
+
+  const ICONOS = {
+    eml: "📧", pdf: "📄", docx: "📝", doc: "📝", xlsx: "📊", xls: "📊",
+    png: "🖼️", jpg: "🖼️", jpeg: "🖼️", zip: "📦", rar: "📦", txt: "📃"
+  };
+
+  function extension(nombre) {
+    return nombre.includes(".") ? nombre.split(".").pop().toLowerCase() : "";
+  }
+
+  function esComprimido(nombre) {
+    return ["zip", "rar"].includes(extension(nombre));
+  }
+
+  function esTemporal(nombre) {
+    const base = nombre.replace(/\\/g, "/").split("/").pop();
+    return base.startsWith("~$") || base.startsWith(".");
+  }
+
+  function formatearTamano(bytes) {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / 1048576).toFixed(1) + " MB";
+  }
+
+  function pesoTotal() {
+    return archivosSeleccionados.reduce(function (total, entrada) {
+      return total + entrada.file.size;
+    }, 0);
+  }
+
+  function sincronizarInput() {
+    const transferencia = new DataTransfer();
+    archivosSeleccionados.forEach(function (entrada) {
+      transferencia.items.add(entrada.file);
+    });
+    input.files = transferencia.files;
+  }
+
+  function pintarLista() {
+    lista.innerHTML = "";
+    const archivos = archivosSeleccionados;
+
+    archivos.forEach(function (entrada, indice) {
+      const file = entrada.file;
+      const li = document.createElement("li");
+      li.className = "file-item";
+
+      const icono = document.createElement("span");
+      icono.className = "file-icon";
+      icono.textContent = ICONOS[extension(file.name)] || "📎";
+
+      const detalle = document.createElement("span");
+      detalle.className = "file-detail";
+
+      const nombre = document.createElement("span");
+      nombre.className = "file-name";
+      nombre.textContent = entrada.path;
+      detalle.appendChild(nombre);
+
+      if (esComprimido(file.name)) {
+        const aviso = document.createElement("span");
+        aviso.className = "file-archive-note";
+        aviso.textContent = "Se descomprimirá al analizar";
+        detalle.appendChild(aviso);
+      }
+
+      const tamano = document.createElement("span");
+      tamano.className = "file-size";
+      tamano.textContent = formatearTamano(file.size);
+
+      const quitar = document.createElement("button");
+      quitar.type = "button";
+      quitar.className = "icon-btn";
+      quitar.setAttribute("aria-label", "Quitar " + file.name);
+      quitar.textContent = "✕";
+      quitar.addEventListener("click", function () {
+        archivosSeleccionados.splice(indice, 1);
+        sincronizarInput();
+        pintarLista();
+      });
+
+      li.append(icono, detalle, tamano, quitar);
+      lista.appendChild(li);
+    });
+
+    const total = pesoTotal();
+    const excedido = total > maxBytes;
+
+    if (archivos.length > 0) {
+      const comprimidos = archivos.filter(function (entrada) {
+        return esComprimido(entrada.file.name);
+      }).length;
+      const resumen = document.createElement("li");
+      resumen.className = "file-summary" + (excedido ? " excedido" : "");
+      resumen.textContent = archivos.length + " archivo(s) · " + formatearTamano(total) +
+        (comprimidos ? " · " + comprimidos + " comprimido(s) se abrirán al analizar" : "") +
+        (excedido ? " — supera el límite de {{ max_upload_mb }} MB" : "");
+      lista.appendChild(resumen);
+    }
+
+    // El nombre cuenta igual que los archivos: sin el, la solicitud no se
+    // puede crear, asi que el boton no debe invitar a intentarlo
+    const nombre = (campoNombre ? campoNombre.value : "").trim();
+
+    btnAnalizar.disabled = !iaDisponible || cargandoArchivos || archivos.length === 0 ||
+      excedido || nombre.length < 3;
+  }
+
+  function mostrarEstadoCarga(mensaje, actual, total) {
+    estadoCarga.hidden = false;
+    mensajeCarga.textContent = mensaje;
+    contadorCarga.textContent = total ? actual + " de " + total :
+      (actual ? actual + " encontrado(s)" : "");
+
+    if (total) {
+      progresoCarga.max = total;
+      progresoCarga.value = actual;
+      progresoCarga.removeAttribute("data-indeterminate");
+    } else {
+      progresoCarga.removeAttribute("value");
+      progresoCarga.setAttribute("data-indeterminate", "true");
+    }
+  }
+
+  function comenzarCarga(mensaje) {
+    cargandoArchivos = true;
+    dropzone.classList.add("cargando");
+    dropzone.setAttribute("aria-busy", "true");
+    btnExaminar.disabled = true;
+    btnAnalizar.disabled = true;
+    mostrarEstadoCarga(mensaje, 0, 0);
+  }
+
+  async function terminarCarga(cantidad) {
+    mensajeCarga.textContent = cantidad + " archivo(s) listo(s)";
+    contadorCarga.textContent = "";
+    progresoCarga.max = 1;
+    progresoCarga.value = 1;
+    progresoCarga.removeAttribute("data-indeterminate");
+    estadoCarga.classList.add("completado");
+
+    // Dejamos la confirmación visible un instante para que no desaparezca
+    // antes de que el usuario alcance a percibirla.
+    await new Promise(function (resolve) { setTimeout(resolve, 650); });
+    estadoCarga.hidden = true;
+    estadoCarga.classList.remove("completado");
+    dropzone.classList.remove("cargando");
+    dropzone.removeAttribute("aria-busy");
+    btnExaminar.disabled = false;
+    cargandoArchivos = false;
+    pintarLista();
+  }
+
+  // Escribir el nombre vuelve a evaluar si ya se puede analizar
+  if (campoNombre) {
+    campoNombre.addEventListener("input", pintarLista);
+  }
+
+
+  async function agregar(entradas) {
+    const nuevasEntradas = Array.from(entradas);
+    comenzarCarga("Agregando archivos…");
+
+    for (let indice = 0; indice < nuevasEntradas.length; indice += 1) {
+      const entrada = nuevasEntradas[indice];
+      const file = entrada.file || entrada;
+      const path = entrada.path || file.webkitRelativePath || file.name;
+      const key = path + "|" + file.size + "|" + file.lastModified;
+
+      // Office y el sistema incluyen temporales/ocultos al seleccionar una
+      // carpeta. No son documentación útil y no deben llegar al análisis.
+      if (esTemporal(path)) continue;
+
+      // La ruta forma parte de la identidad: dos carpetas pueden contener un
+      // documento con el mismo nombre y tamaño, y ambos deben analizarse.
+      const repetido = archivosSeleccionados.some(function (existente) {
+        return existente.key === key;
+      });
+      if (!repetido) archivosSeleccionados.push({ file: file, path: path, key: key });
+
+      if ((indice + 1) % 20 === 0 || indice + 1 === nuevasEntradas.length) {
+        mostrarEstadoCarga("Agregando archivos…", indice + 1, nuevasEntradas.length);
+        await new Promise(function (resolve) { requestAnimationFrame(resolve); });
+      }
+    }
+
+    sincronizarInput();
+    pintarLista();
+    await terminarCarga(nuevasEntradas.length);
+  }
+
+  btnExaminar.addEventListener("click", function () {
+    inputCarpetas.click();
+  });
+
+  dropzone.addEventListener("click", function (e) {
+    if (e.target.closest(".dropzone-actions")) return;
+    btnExaminar.click();
+  });
+  dropzone.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      btnExaminar.click();
+    }
+  });
+
+  input.addEventListener("change", async function () {
+    // Al elegir desde el diálogo, el input trae solo lo nuevo: lo acumulamos
+    await agregar(Array.from(input.files).map(function (file) {
+      return { file: file, path: file.name };
+    }));
+  });
+
+  inputCarpetas.addEventListener("change", async function () {
+    // webkitRelativePath trae carpeta/subcarpeta/archivo para cada elemento.
+    await agregar(Array.from(inputCarpetas.files).map(function (file) {
+      return { file: file, path: file.webkitRelativePath || file.name };
+    }));
+
+    // Permite volver a elegir la misma carpeta en otra tanda.
+    inputCarpetas.value = "";
+  });
+
+  function leerArchivoDeEntrada(entrada, prefijo, alEncontrar) {
+    return new Promise(function (resolve, reject) {
+      entrada.file(function (file) {
+        alEncontrar();
+        resolve([{ file: file, path: prefijo + file.name }]);
+      }, reject);
+    });
+  }
+
+  async function leerDirectorio(entrada, prefijo, alEncontrar) {
+    const lector = entrada.createReader();
+    const hijos = [];
+
+    // Chromium entrega directorios grandes en varios lotes; hay que leer hasta
+    // recibir uno vacío para no perder archivos a partir del primero.
+    while (true) {
+      const lote = await new Promise(function (resolve, reject) {
+        lector.readEntries(resolve, reject);
+      });
+      if (!lote.length) break;
+      hijos.push.apply(hijos, lote);
+    }
+
+    const encontrados = [];
+    const ruta = prefijo + entrada.name + "/";
+
+    for (const hijo of hijos) {
+      encontrados.push.apply(encontrados, await leerEntrada(hijo, ruta, alEncontrar));
+    }
+
+    return encontrados;
+  }
+
+  function leerEntrada(entrada, prefijo, alEncontrar) {
+    if (entrada.isFile) return leerArchivoDeEntrada(entrada, prefijo, alEncontrar);
+    if (entrada.isDirectory) return leerDirectorio(entrada, prefijo, alEncontrar);
+    return Promise.resolve([]);
+  }
+
+  async function archivosSoltados(transferencia) {
+    const items = Array.from(transferencia.items || []);
+    const entradas = items.map(function (item) {
+      return item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;
+    }).filter(Boolean);
+
+    // webkitGetAsEntry es la API que expone carpetas y permite recorrer todos
+    // sus niveles. Si no está disponible, conservamos la carga de archivos.
+    if (!entradas.length) {
+      return Array.from(transferencia.files).map(function (file) {
+        return { file: file, path: file.name };
+      });
+    }
+
+    const encontrados = [];
+    let cantidadEncontrada = 0;
+    const alEncontrar = function () {
+      cantidadEncontrada += 1;
+      mostrarEstadoCarga("Leyendo carpetas…", cantidadEncontrada, 0);
+    };
+    for (const entrada of entradas) {
+      encontrados.push.apply(encontrados, await leerEntrada(entrada, "", alEncontrar));
+    }
+    return encontrados;
+  }
+
+  ["dragenter", "dragover"].forEach(function (evento) {
+    dropzone.addEventListener(evento, function (e) {
+      e.preventDefault();
+      dropzone.classList.add("activa");
+    });
+  });
+
+  ["dragleave", "drop"].forEach(function (evento) {
+    dropzone.addEventListener(evento, function (e) {
+      e.preventDefault();
+      if (evento === "dragleave" && dropzone.contains(e.relatedTarget)) return;
+      dropzone.classList.remove("activa");
+    });
+  });
+
+  dropzone.addEventListener("drop", async function (e) {
+    if (!e.dataTransfer) return;
+
+    try {
+      comenzarCarga("Leyendo carpetas…");
+      const encontrados = await archivosSoltados(e.dataTransfer);
+      await agregar(encontrados);
+    } catch (error) {
+      estadoCarga.hidden = true;
+      dropzone.classList.remove("cargando");
+      dropzone.removeAttribute("aria-busy");
+      btnExaminar.disabled = false;
+      cargandoArchivos = false;
+      pintarLista();
+      window.showToast("No se pudo leer una de las carpetas seleccionadas.", "error");
+    }
+  });
+
+  // Mostramos la espera mientras HTMX tiene la petición en vuelo
+  document.body.addEventListener("htmx:beforeRequest", function (e) {
+    if (e.target.id !== "analysis-form") return;
+    tituloAnalisis.textContent = "Subiendo documentos";
+    pistaAnalisis.textContent = "Enviando los archivos de forma segura…";
+    progresoEnvio.value = 0;
+    etiquetaProgresoEnvio.textContent = "0%";
+    progresoEnvioWrap.hidden = false;
+    overlay.hidden = false;
+  });
+
+  document.body.addEventListener("htmx:xhr:progress", function (e) {
+    if (e.target.id !== "analysis-form" || !e.detail.total) return;
+    const porcentaje = Math.min(100, Math.round(e.detail.loaded / e.detail.total * 100));
+    progresoEnvio.value = porcentaje;
+    etiquetaProgresoEnvio.textContent = porcentaje + "%";
+
+    if (porcentaje === 100) {
+      tituloAnalisis.textContent = "Analizando documentos";
+      pistaAnalisis.innerHTML = "Archivos recibidos. La IA está evaluando el checklist.<br>" +
+        "Con muchos documentos puede tardar varios minutos.";
+      progresoEnvioWrap.hidden = true;
+    }
+  });
+
+  document.body.addEventListener("htmx:afterRequest", function (e) {
+    if (e.target.id !== "analysis-form") return;
+    overlay.hidden = true;
+    progresoEnvioWrap.hidden = true;
+  });
+
+  // Los errores HTTP, de red y de tiempo también deben retirar la pantalla de
+  // espera. El manejador global mostrará el detalle devuelto por el servidor.
+  ["htmx:responseError", "htmx:sendError", "htmx:timeout"].forEach(function (evento) {
+    document.body.addEventListener(evento, function (e) {
+      if (e.target.id !== "analysis-form") return;
+      overlay.hidden = true;
+      progresoEnvioWrap.hidden = true;
+    });
+  });
+
+  pintarLista();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,88 @@
+<div id="cases-list" class="cases-list-wrap">
+  {% for case in cases %}
+    <details class="card case-card-item">
+      <summary class="case-header">
+        <span class="case-icon" style="background: {{ case.color }}22; color: {{ case.color }};">
+          {{ case.icon }}
+        </span>
+        <span class="case-info">
+          <span class="case-title">
+            {{ case.name }}
+          </span>
+          <span class="case-description">{{ case.description or 'Sin descripción' }}</span>
+        </span>
+        <span class="case-count">{{ case.checklist|length }} verificaciones</span>
+      </summary>
+
+      <form class="case-editor"
+            hx-post="/cases/{{ case.id }}"
+            hx-target="#cases-list"
+            hx-swap="outerHTML">
+
+        <div class="field-row">
+          <div class="form-group" style="flex: 2">
+            <label for="name-{{ case.id }}">Nombre</label>
+            <input class="input" type="text" id="name-{{ case.id }}" name="name"
+                   value="{{ case.name }}" required />
+          </div>
+          <div class="form-group" style="width: 90px">
+            <label for="icon-{{ case.id }}">Icono</label>
+            <input class="input" type="text" id="icon-{{ case.id }}" name="icon"
+                   value="{{ case.icon }}" maxlength="4" />
+          </div>
+          <div class="form-group" style="width: 90px">
+            <label for="color-{{ case.id }}">Color</label>
+            <input class="input input-color" type="color" id="color-{{ case.id }}" name="color"
+                   value="{{ case.color }}" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="desc-{{ case.id }}">Descripción</label>
+          <input class="input" type="text" id="desc-{{ case.id }}" name="description"
+                 value="{{ case.description }}" />
+        </div>
+
+        <div class="form-group">
+          <label>Checklist</label>
+          <div class="checklist-editor" data-editor>
+            {% for item in case.checklist %}
+              <div class="checklist-row">
+                <span class="checklist-index">{{ loop.index }}</span>
+                <input class="input" type="text" name="questions" value="{{ item.question }}" />
+                <button type="button" class="icon-btn danger" data-quitar
+                        aria-label="Quitar pregunta">✕</button>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <button type="button" class="btn btn-sm u-push" data-agregar>Añadir pregunta</button>
+
+          <button type="button" class="btn btn-sm btn-danger"
+                  hx-delete="/cases/{{ case.id }}"
+                  hx-target="#cases-list"
+                  hx-swap="outerHTML"
+                  hx-confirm="¿Eliminar el caso «{{ case.name }}»? El historial que lo usó conserva sus datos.">
+            Eliminar caso
+          </button>
+          <button type="button" class="btn btn-sm"
+                  hx-get="/cases/list"
+                  hx-target="#cases-list"
+                  hx-swap="outerHTML">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-sm btn-primary">Guardar cambios</button>
+        </div>
+      </form>
+    </details>
+  {% else %}
+    <div class="card">
+      <div class="empty-state">
+        <p class="empty-state-title">Sin casos</p>
+        <p class="empty-state-text">Crea el primer caso para poder analizar solicitudes.</p>
+      </div>
+    </div>
+  {% endfor %}
+</div>

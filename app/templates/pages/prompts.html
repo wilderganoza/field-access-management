@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Prompts · {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row">
+    <div>
+      <h1 class="page-title">Plantilla de análisis</h1>
+      <p class="page-subtitle">Instrucciones que recibe la IA en cada solicitud</p>
+    </div>
+  </div>
+</div>
+
+<div class="status-message warning" role="note">
+  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+  </svg>
+  <span>
+    Este texto afecta a <strong>todos</strong> los análisis siguientes. Si quitas
+    las instrucciones de formato JSON del final, los resultados dejarán de guardarse
+    correctamente.
+  </span>
+</div>
+
+{% include "partials/prompt_editor.html" %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  "use strict";
+
+  function ajustarAltura(editor) {
+    if (!editor || !editor.classList.contains("prompt-textarea")) return;
+
+    // Volver a auto antes de medir permite que también se reduzca al borrar texto.
+    editor.style.height = "auto";
+    editor.style.height = editor.scrollHeight + "px";
+  }
+
+  function ajustarEditores(contenedor) {
+    if (contenedor.matches && contenedor.matches(".prompt-textarea")) {
+      ajustarAltura(contenedor);
+    }
+    contenedor.querySelectorAll?.(".prompt-textarea").forEach(ajustarAltura);
+  }
+
+  // Ajustamos el contenido que llegó con la página.
+  ajustarEditores(document);
+
+  // El editor crece y se reduce mientras se escribe.
+  document.addEventListener("input", function (event) {
+    ajustarAltura(event.target);
+  });
+
+  // Restaurar la plantilla reemplaza el editor mediante HTMX.
+  document.body.addEventListener("htmx:afterSwap", function (event) {
+    ajustarEditores(event.target);
+  });
+})();
+</script>
+{% endblock %}

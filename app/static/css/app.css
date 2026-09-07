@@ -1,0 +1,2242 @@
+/* ============================================================
+   Verificación de Permisos — hoja de estilos de la aplicación.
+   Los tokens viven en tokens.css (copia sincronizada de
+   "00. Design System/tokens.css"). Aquí solo van componentes y layout,
+   siguiendo la guía y el lenguaje visual de Field Data Platform.
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code, .mono { font-family: var(--font-mono); }
+
+a { color: var(--color-primary); text-decoration: none; }:focus-visible,
+/* El foco por teclado tiene que verse: el input real está oculto */ .case-option input:focus-visible + .case-card {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--color-bg); }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  z-index: 50;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-left,
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.header-brand .logo { color: var(--color-primary); }
+
+.header-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+
+.user-info { text-align: right; }
+
+.user-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.user-role {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.2;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.app-sidebar {
+  position: fixed;
+  left: 0;
+  top: var(--header-height);
+  bottom: 0;
+  width: var(--sidebar-width);
+  z-index: 40;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  transition: transform var(--transition-slow);
+  overflow-y: auto;
+}
+
+body[data-sidebar="closed"] .app-sidebar { transform: translateX(-100%); }
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 8px;
+  gap: 2px;
+}
+
+.sidebar-section-label {
+  padding: 12px 8px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }.nav-item:hover,
+.btn-ghost:hover,
+.icon-btn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}.nav-item.active,
+.step.active {
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+.app-main {
+  min-width: 0;
+  margin-top: var(--header-height);
+  margin-left: var(--sidebar-width);
+  padding: 24px;
+  transition: margin-left var(--transition-slow);
+}
+
+body[data-sidebar="closed"] .app-main { margin-left: 0; }
+
+/* Sin sesión no hay header ni sidebar: el contenido ocupa la pantalla entera */
+body[data-chrome="off"] .app-main {
+  margin-top: 0;
+  margin-left: 0;
+  padding: 0;
+}
+
+/* ============================================================
+   BOTONES
+   ============================================================ */
+
+.btn {
+  /* Medidas del producto original: 6px 14px y 13px. Es el btnStyle que se
+     repite 30 veces en su codigo, asi que es el canonico. Antes aqui habia
+     8px 18px y 14px, que engordaba todos los botones de las cinco apps. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}.btn:hover,
+.data-table tr:hover td,
+.person-header:hover,
+.table-actions tr:hover td:last-child,
+.case-header:hover,
+.user-header:hover,
+.tab-group:hover,
+.step:hover {
+  background: var(--color-surface-hover);
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.btn-outline { background: transparent; color: var(--color-text); }
+
+.btn-danger {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  background: transparent;
+}.btn-danger:hover,
+.badge.sev-critical,
+.icon-btn.danger:hover {
+  background: var(--color-danger-bg);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-text-muted);
+}
+
+/* Nivel compacto: barras de filtro y toolbars sobre tablas */
+.btn-sm { padding: 4px 8px; font-size: 12px; }
+
+.btn-lg { padding: 12px 28px; font-size: 15px; font-weight: 600; }
+
+.btn-block { width: 100%; }
+
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+/* El botón de tema muestra un icono u otro según el tema activo */
+[data-theme="dark"] .icon-sun { display: none; }
+[data-theme="light"] .icon-moon { display: none; }
+
+/* ============================================================
+   FORMULARIOS
+   ============================================================ */
+
+.form-group { margin-bottom: 16px; }
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+}
+
+.input, .select, .textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 14px;
+  transition: border-color var(--transition-fast);
+}
+
+.input:focus, .select:focus, .textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-bg);
+}
+
+.input-sm, .select-sm { padding: 6px 10px; font-size: 13px; }
+
+.textarea { min-height: 120px; resize: vertical; }
+
+.filter-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+}
+
+/* ============================================================
+   TARJETAS, TABLAS Y BADGES
+   ============================================================ */
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card-header { display: flex; justify-content: space-between; align-items: center; }
+.card-footer { display: flex; justify-content: flex-end; gap: 8px; }
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: var(--color-surface);
+}
+
+.data-table th, .data-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  /* Sin envolver, como el tdStyle del original: una celda que parte el texto
+     en dos lineas hace la fila mas alta que la del producto que se copia.
+     Las que si deben envolver llevan .cell-wrap. */
+  white-space: nowrap;
+}
+
+/* Las celdas no parten linea: una fila de datos de campo con la fecha o el
+   nombre partido en dos se vuelve ilegible. Es lo que hacia el tdStyle del
+   producto original. Para el texto largo esta .cell-wrap. */
+.data-table td { white-space: nowrap; }
+
+.data-table th {
+  white-space: nowrap;
+  /* 12px y peso 600, sin mayusculas ni espaciado: es el thStyle canonico del
+     original. Antes aqui habia 11px en mayusculas con letter-spacing, que le
+     daba a las cabeceras un aire distinto al del producto. */
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}.badge.success,
+.provider-test.ok {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+.badge.warning { background: var(--color-warning-bg); color: var(--color-warning); }.badge.danger,
+.provider-test.ko {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}.badge.primary,
+.phase-card.active > summary {
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+}
+.badge.info    { background: var(--color-info-bg);    color: var(--color-secondary); }
+
+/* ============================================================
+   MENSAJES DE ESTADO Y SPINNER
+   ============================================================ */
+
+.status-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.status-message.success {
+  background: var(--color-success-bg);
+  border: 1px solid var(--color-success-border);
+  color: var(--color-success);
+}
+
+.status-message.error {
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
+  color: var(--color-danger);
+}
+
+.status-message.warning {
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
+  color: var(--color-warning);
+}
+
+.status-message.info {
+  background: var(--color-info-bg);
+  border: 1px solid var(--color-info-border);
+  color: var(--color-secondary);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* HTMX marca con esta clase el elemento que disparó una petición en curso */
+.htmx-request .spinner-inline { display: inline-block; }
+.spinner-inline { display: none; }
+
+/* ============================================================
+   PÁGINA DE LOGIN
+   ============================================================ */
+
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--color-bg);
+}
+
+.login-card-wrap { position: relative; width: min(100%, 420px); }
+
+.login-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 32px;
+}
+
+.login-header { text-align: center; margin-bottom: 24px; }
+
+.login-header .logo { color: var(--color-primary); margin-bottom: 12px; }
+
+.login-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.login-subtitle {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+.login-theme-toggle {
+  position: absolute;
+  top: -44px;
+  right: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+/* ============================================================
+   ESTADOS VACÍOS Y ENCABEZADO DE PÁGINA
+   ============================================================ */
+
+.page-header { margin-bottom: 24px; }
+
+.page-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.page-title {
+  /* 22px y 700, con 4px hasta el subtitulo: son las medidas del producto
+     original. Aqui habia 24px y 2px, que hacia los titulos mas grandes y
+     los pegaba mas al subtitulo que en el producto. */
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.empty-state {
+  padding: 80px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-muted);
+}.empty-state-title,
+.analysis-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.empty-state-text { font-size: 13px; text-align: center; }
+
+/* ============================================================
+   SELECTOR DE CASO
+   ============================================================ */
+
+.opcional { font-weight: 400; color: var(--color-text-muted); }
+
+.case-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.case-option input { position: absolute; opacity: 0; pointer-events: none; }
+
+.case-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  height: 100%;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.case-option:hover .case-card { border-color: var(--color-border-strong); }.case-option input:checked + .case-card,
+.dropzone.activa {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+
+.case-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.case-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }.case-name,
+.dropzone-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.case-desc { font-size: 12px; color: var(--color-text-muted); line-height: 1.4; }.case-count {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   ZONA DE CARGA
+   ============================================================ */
+
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 24px;
+  border: 2px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}.dropzone:hover, .dropzone:focus-visible,
+/* La fase que se esta ejecutando */ .phase-card.active {
+  border-color: var(--color-primary);
+}
+.dropzone-hint { font-size: 12px; text-align: center; line-height: 1.5; }
+
+.dropzone-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dropzone.cargando {
+  cursor: wait;
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+
+.file-load-status {
+  width: min(100%, 440px);
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.file-load-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.file-load-count {
+  margin-left: auto;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.file-load-spinner { display: inline-block; }
+.file-load-status.completado .file-load-spinner { display: none; }
+
+.file-load-progress {
+  display: block;
+  width: 100%;
+  height: 6px;
+  border: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  color: var(--color-primary);
+  background: var(--color-border);
+  accent-color: var(--color-primary);
+}
+
+.file-load-progress::-webkit-progress-bar { background: var(--color-border); }
+.file-load-progress::-webkit-progress-value { background: var(--color-primary); }
+.file-load-progress::-moz-progress-bar { background: var(--color-primary); }
+
+.file-load-progress[data-indeterminate="true"] {
+  background: linear-gradient(90deg,
+    var(--color-border) 0%,
+    var(--color-primary) 50%,
+    var(--color-border) 100%);
+  background-size: 200% 100%;
+  animation: file-load-indeterminate 1.2s linear infinite;
+}
+
+@keyframes file-load-indeterminate {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+.file-list { list-style: none; margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  font-size: 13px;
+}
+
+.file-icon { flex-shrink: 0; }
+.file-detail {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.file-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-archive-note { color: var(--color-primary); font-size: 12px; }
+.file-size { color: var(--color-text-muted); font-size: 12px; flex-shrink: 0; }
+
+.file-summary {
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.file-summary.excedido { color: var(--color-danger); font-weight: 600; }
+
+.analysis-result-zone:not(:empty) { margin-top: 20px; }
+
+/* ============================================================
+   ESPERA DEL ANÁLISIS
+   ============================================================ */
+
+.analysis-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.analysis-overlay[hidden] { display: none; }
+
+.analysis-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 40px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.upload-progress-wrap {
+  display: grid;
+  grid-template-columns: minmax(220px, 360px) 38px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 4px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.upload-progress-wrap[hidden] { display: none; }
+
+.analysis-hint,
+.provider-status {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+/* ============================================================
+   RESULTADOS
+   ============================================================ */
+
+.verdict-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  border-radius: var(--radius);
+  border-left: 4px solid;
+}
+
+.verdict-banner.success { background: var(--color-success-bg); border-left-color: var(--color-success); color: var(--color-success); }
+.verdict-banner.danger  { background: var(--color-danger-bg);  border-left-color: var(--color-danger);  color: var(--color-danger); }
+.verdict-banner.warning { background: var(--color-warning-bg); border-left-color: var(--color-warning); color: var(--color-warning); }
+
+.verdict-icon { display: flex; flex-shrink: 0; }
+.verdict-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85; }
+.verdict-value { font-size: 18px; font-weight: 700; line-height: 1.2; }
+
+.tab-bar {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 16px;
+}
+
+.tab-btn {
+  /* En una sola linea: con once pestanas, partirlas en dos
+     descuadra la fila entera respecto al original. */
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  padding: 7px 18px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.tab-btn:hover { color: var(--color-text); }
+
+.tab-btn.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  font-weight: 600;
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.person-card { margin-bottom: 12px; padding: 0; gap: 0; }
+
+.person-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.person-header::-webkit-details-marker { display: none; }
+.person-title { font-size: 14px; font-weight: 600; }
+.person-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.person-card .data-table { border-top: 1px solid var(--color-border); }
+.person-card .data-table td.cell-wrap { white-space: normal; }
+
+.meta-list {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 6px 16px;
+  font-size: 13px;
+}.meta-list dt,
+.breadcrumb a,
+.data-table th.grp-pot {
+  color: var(--color-text-muted);
+}
+.meta-list dd { color: var(--color-text); word-break: break-word; }
+
+.email-body {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+/* ============================================================
+   MARKDOWN DEL RESUMEN EJECUTIVO
+   ============================================================ */
+
+.markdown { font-size: 14px; line-height: 1.7; }
+.markdown h1 { font-size: 20px; font-weight: 700; margin: 20px 0 10px; }
+.markdown h2 { font-size: 17px; font-weight: 700; margin: 20px 0 8px; }
+.markdown h3 { font-size: 15px; font-weight: 600; margin: 16px 0 6px; }
+.markdown p { margin-bottom: 10px; }
+.markdown ul, .markdown ol { margin: 0 0 12px 20px; }
+.markdown li { margin-bottom: 4px; }
+.markdown hr { border: none; border-top: 1px solid var(--color-border); margin: 20px 0; }
+.markdown strong { font-weight: 600; color: var(--color-text); }
+.markdown code {
+  padding: 1px 5px;
+  border-radius: var(--radius-xs);
+  background: var(--color-surface-2);
+  font-size: 12px;
+}
+
+.markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.markdown th, .markdown td {
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.markdown th {
+  background: var(--color-surface-2);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+}
+
+/* Las tablas anchas hacen scroll dentro de su caja, no en la página */
+.markdown { overflow-x: auto; }
+
+/* ============================================================
+   BARRA DE FILTROS
+   ============================================================ */
+
+.filter-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.filter-field { display: flex; flex-direction: column; gap: 4px; min-width: 160px; }
+/* Todos los filtros miden lo mismo: el primero se estiraba a costa de los
+   demas, y el original los reparte por igual */
+.filter-field { flex: 1 1 0; }
+
+/* ============================================================
+   TABLAS CON ACCIONES
+   ============================================================ */
+
+.table-card { padding: 0; gap: 0; overflow: hidden; }
+.table-scroll { overflow-x: auto; }
+
+.link-strong { color: var(--color-text); font-weight: 600; display: block; }
+.link-strong:hover { color: var(--color-primary); }
+
+.row-meta {
+  display: block;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.row-actions { display: flex; gap: 2px; }
+
+.icon-btn.danger:hover { color: var(--color-danger); background: var(--color-danger-bg); }
+.table-footer {
+  padding: 10px 16px;
+  border-top: 1px solid var(--color-border);
+  font-size: 12px;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  /* El conteo y el selector van juntos a la derecha, como el original: con
+     space-between el conteo se quedaba pegado al borde izquierdo */
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+/* La columna de acciones queda fija al hacer scroll horizontal */
+.table-actions th:last-child,
+.table-actions td:last-child {
+  position: sticky;
+  right: 0;
+  background: var(--color-surface);
+}/* ============================================================ CASOS ============================================================ */ .card-title,
+.provider-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.field-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+.field-row .form-group { margin-bottom: 0; }
+
+.input-color { padding: 4px; height: 36px; cursor: pointer; }
+
+
+/* ============================================================== LISTADOS */
+/* La separacion entre tarjetas de un listado. Se declara como variable porque
+   el panel de alta que va ENCIMA de la lista tiene que dejar el mismo hueco, y
+   ese panel es hermano de la lista, no hijo: el `gap` no le alcanza. */
+:root { --hueco-listado: 12px; }
+
+.cases-list-wrap,
+.users-list-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hueco-listado);
+}
+
+.case-card-item { padding: 0; gap: 0; }.case-header,
+.user-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.case-header::-webkit-details-marker { display: none; }.case-info,
+.user-info-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.case-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}.case-description,
+.prompt-date,
+.user-meta,
+.rows-per-page span {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}.case-editor,
+.user-editor {
+  padding: 20px;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Las preguntas se leen de una en una: 6px las dejaba pegadas y la lista
+   parecia un bloque de texto en vez de una serie de campos */
+.checklist-editor { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+
+.checklist-row { display: flex; align-items: center; gap: 8px; }
+
+.checklist-index {
+  width: 22px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   EDITOR DE PROMPTS
+   ============================================================ */
+
+.prompt-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 16px;
+  align-items: start;
+}
+
+.prompt-status { display: flex; align-items: center; gap: 10px; }
+
+.prompt-textarea {
+  min-height: 120px;
+  height: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  resize: none;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.prompt-help { position: sticky; top: calc(var(--header-height) + 24px); }
+.prompt-help-intro { font-size: 12px; color: var(--color-text-muted); line-height: 1.5; }
+
+.variables-list { display: flex; flex-direction: column; gap: 10px; }
+
+.variables-list dt code {
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  background: var(--color-surface-2);
+  font-size: 11px;
+  color: var(--color-primary);
+}
+
+.variables-list dd {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.45;
+  margin-top: 3px;
+}
+
+.user-card { padding: 0; gap: 0; }
+
+.user-header::-webkit-details-marker { display: none; }
+
+.user-header-button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.app-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(7, 10, 18, 0.68);
+  backdrop-filter: blur(3px);
+}
+
+.app-modal[hidden] { display: none; }
+.app-modal-confirm { z-index: 90; }
+body.modal-open { overflow: hidden; }
+
+.modal-dialog {
+  width: min(760px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-md);
+}
+
+.modal-dialog-sm { width: min(440px, calc(100vw - 32px)); }
+
+.app-modal:not([hidden]) .modal-dialog {
+  animation: modal-in 160ms ease-out;
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-form {
+  display: flex;
+  max-height: calc(100vh - 32px);
+  flex-direction: column;
+}
+
+.modal-header,
+.modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+}
+
+.modal-header {
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal-actions {
+  justify-content: flex-end;
+  border-top: 1px solid var(--color-border);
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.modal-subtitle {
+  margin-top: 3px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.modal-copy {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.user-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.user-form-full { grid-column: 1 / -1; }
+
+.user-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.user-last-access {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.field-hint { font-size: 11px; color: var(--color-text-muted); margin-top: 3px; display: block; }
+
+.check-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 16px;
+  font-size: 13px;
+  line-height: 16px;
+  cursor: pointer;
+}
+
+.check-inline input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex: 0 0 16px;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.check-inline span { line-height: 16px; }
+
+/* ============================================================
+   TOASTS
+   ============================================================ */
+
+#toast-container {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 380px;
+}
+
+#toast-container .status-message {
+  margin-bottom: 0;
+  box-shadow: var(--shadow-md);
+  background: var(--color-surface);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 1024px) {
+  .prompt-layout { grid-template-columns: 1fr; }
+  .prompt-help { position: static; }
+}
+
+@media (max-width: 768px) {
+  .app-sidebar { transform: translateX(-100%); }
+  .app-main { margin-left: 0; padding: 16px; }
+  body[data-sidebar="open"] .app-sidebar { transform: translateX(0); }
+  .user-info { display: none; }
+  .user-form-grid { grid-template-columns: 1fr; }
+  .user-form-full { grid-column: auto; }
+  .user-last-access { display: none; }
+}
+
+/* ============================================================
+   UTILIDADES
+   Las cinco aplicaciones comparten estas: alineacion, anchos de
+   columna, separaciones y los envoltorios de pantalla. Estan aqui
+   para que ninguna plantilla lleve estilos en linea, que es lo que
+   hace que dos apps hermanas acaben pareciendose solo de lejos.
+   ============================================================ */
+
+/* --- Alineacion --- */
+.u-right     { text-align: right; }
+.u-center    { text-align: center; }
+.u-between   { justify-content: space-between; }
+.u-grow      { flex: 1; }
+.u-noshrink  { flex-shrink: 0; }
+
+/* --- Campos de filtro que crecen, con un minimo legible --- */
+.u-grow-sm   { flex: 1; min-width: 180px; }
+.u-grow-md   { flex: 1; min-width: 200px; }
+.u-grow-lg   { flex: 1; min-width: 220px; }
+
+/* --- Anchos de columna de tabla. Son los del producto original: las
+       columnas de fecha, cantidad y acciones tienen ancho fijo para
+       que las filas no bailen al cambiar de pagina. --- */
+.col-xs   { width: 90px; }
+.col-sm   { width: 100px; }
+.col-md   { width: 110px; }
+.col-lg   { width: 120px; }
+.col-xl   { width: 130px; }
+.col-2xl  { width: 150px; }
+.col-3xl  { width: 160px; }
+.col-4xl  { width: 170px; }
+.col-5xl  { width: 200px; }
+
+/* --- Separaciones --- */
+.u-mt-sm { margin-top: 12px; }
+.u-mt    { margin-top: 16px; }
+.u-mb-xs { margin-bottom: 10px; }
+.u-mb-sm { margin-bottom: 12px; }
+.u-mb    { margin-bottom: 16px; }
+.u-mb-lg { margin-bottom: 24px; }
+.u-m0    { margin: 0; }
+
+/* --- Relleno interior de un bloque dentro de una tarjeta --- */
+.u-pad      { padding: 12px; }
+.u-pad-card { padding: 0 16px 16px; }
+
+/* --- Pantalla centrada: la usan el acceso y la recuperacion de clave --- */
+.screen-center {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  padding: 24px;
+}
+
+/* --- Lista de casillas con desplazamiento, para elegir entre muchas --- */
+.check-scroll {
+  max-height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0;
+}
+
+/* ============================================================
+   COMPONENTES DE PANTALLA
+   Los valores son los del producto original de FDP, medidos en su
+   codigo. Viven aqui, no en las plantillas, porque las cinco
+   aplicaciones tienen que renderizar lo mismo.
+   ============================================================ */
+
+/* --- Acceso y recuperacion de clave --- */
+.auth-card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 28px;
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.auth-brand-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.auth-field      { margin-bottom: 14px; }
+.auth-field-last { margin-bottom: 18px; }
+
+.auth-error {
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: var(--color-danger);
+}
+
+.auth-aside {
+  text-align: right;
+  margin-bottom: 14px;
+}
+
+.auth-link {
+  font-size: 12px;
+  color: var(--color-primary);
+}
+
+/* --- Catalogo de dashboards: rejilla y tarjeta con icono de acento --- */
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.catalog-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform var(--transition), border-color var(--transition);
+}.catalog-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--acento);
+}
+
+/* El recuadro del icono. El color lo pone cada tarjeta con --acento,
+   que es una variable, no un estilo en linea. */
+.catalog-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--acento) 10%, transparent);
+  color: var(--acento);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.catalog-title {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.catalog-desc {
+  display: block;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+/* --- Pagina con pestanas: la tarjeta envuelve pestanas y contenido --- */
+.tabbed-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.tabbed-card > .tab-bar {
+  gap: 4px;
+  padding: 8px 12px;
+  margin-bottom: 0;
+  background: var(--color-bg);
+  overflow-x: auto;
+  align-items: stretch;
+}
+
+.tabbed-panel { padding: 16px; }
+
+/* --- El bloque de administracion, al fondo de la barra lateral --- */
+.sidebar-bottom {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* --- Campos dentro de la barra de filtros. El .form-group trae margen
+       inferior, y en una barra horizontal ese margen descuadra la fila,
+       asi que estas variantes lo anulan y fijan el ancho. --- */
+.filter-bar .form-group { margin-bottom: 0; }
+
+.field-w-sm  { width: 140px; }
+.field-w     { width: 160px; }
+.field-w-md  { width: 180px; }
+.field-w-lg  { width: 220px; }
+.field-grow  { flex: 1; min-width: 220px; }
+.field-grow-x{ flex: 1; min-width: 260px; }
+.field-grow-2{ flex: 2; }
+
+/* --- Anchos porcentuales de columna, para las tablas que reparten el
+       espacio en vez de fijarlo en pixeles --- */
+.col-p12 { width: 12%; }
+.col-p14 { width: 14%; }
+.col-p15 { width: 15%; }
+.col-tiny { width: 50px; }
+.col-min { min-width: 150px; }
+
+/* --- Separaciones finas dentro de un fragmento --- */
+.u-mt-xs { margin-top: 6px; }
+.u-mt-x  { margin-top: 10px; }
+.u-pad-x { padding: 0 16px; }
+.u-inset { margin: 0 16px 12px; }
+
+/* --- Rejilla de casillas del editor de agentes --- */
+.check-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 4px;
+}
+
+/* --- Barra de filtros compacta, en linea --- */
+.filter-inline {
+  display: flex;
+  gap: 8px;
+  align-items: end;
+  margin: 0;
+}
+.u-start { justify-content: flex-start; }
+
+/* Segunda fila de pestanas, para las secciones que agrupan por categoria */
+.tab-bar-sub {
+  gap: 4px;
+  padding: 6px 12px;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--color-border);
+}
+/* Enlace con forma de boton: sin fondo ni borde, en el color primario. El
+   producto original lo usa para las acciones secundarias dentro de una tabla
+   (ver detalle, abrir hoja), y aparece 67 veces en su codigo. */
+.btn-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.btn-link:hover { text-decoration: underline; }
+
+/* ============================================================
+   COMPONENTES DE DISPOSICION
+   Cada uno con las medidas del producto original de FDP, y el
+   numero de veces que aparece en su codigo, que es lo que los
+   convierte en componentes y no en casos sueltos.
+   ============================================================ */
+
+/* Migas de pan sobre el titulo de una pantalla de detalle (x40) */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+.breadcrumb a:hover { color: var(--color-primary); }
+
+/* Botones pegados, como los de una paginacion o un selector (x40) */
+.btn-group {
+  display: flex;
+  gap: 4px;
+}
+
+/* Pie de un formulario largo: separado por una linea (x36) */
+.form-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* Barra de acciones sobre una tabla, alineada a la derecha (x36) */
+.action-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* Fila con algo a cada lado: titulo a la izquierda, acciones a la derecha (x26) */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+/* Campo que se muestra pero no se edita: calculado, o de solo lectura (x25).
+   Se distingue por el fondo, no quitando el borde, para que siga leyendose
+   como un campo y no como texto suelto. */
+.input-readonly,
+.input[readonly] {
+  background: var(--color-surface-hover);
+  cursor: default;
+}
+
+/* Rejilla de formulario a tres columnas, con tope de ancho para que las
+   etiquetas no queden a un palmo de su campo en pantallas anchas (x23) */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  max-width: 900px;
+}
+
+/* Un campo que ocupa la fila entera dentro de la rejilla */
+.form-grid .span-all { grid-column: 1 / -1; }
+
+@media (max-width: 768px) {
+  .form-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   El atributo hidden gana siempre
+   ============================================================
+   `hidden` oculta poniendo display:none desde la hoja del navegador,
+   y cualquier regla de autor con display la pisa. `.card` usa
+   display:flex, asi que un <form class="card" hidden> se veia igual:
+   es lo que hacia que el formulario de alta apareciera desplegado
+   encima de la tabla en todos los mantenedores. */
+[hidden] { display: none !important; }
+
+/* ============================================================
+   PANEL DE FILTROS Y PIE DE TABLA
+   Medidas del FilterBar.tsx y del Pagination.tsx originales.
+   ============================================================ */
+
+/* El panel: una caja sobre la tabla con los campos en linea y las
+   acciones al final. No es la .filter-bar suelta: lleva fondo, borde
+   y sus campos usan rotulo en mayusculas de 11px. */
+.filter-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.filter-panel label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.filter-panel .input,
+.filter-panel .select {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+/* Los campos del panel se reparten la fila. Con un ancho minimo fijo, seis
+   filtros ya no dejaban sitio a los botones y estos caian a una segunda linea,
+   mientras el original los mantiene al final de la misma fila. */
+.filter-panel .form-group {
+  flex: 1 1 0;
+  min-width: 110px;
+  margin-bottom: 0;
+}
+
+/* Las acciones del panel se van al final de la fila, sin encogerse */
+.filter-panel .filter-actions {
+  margin-left: auto;
+  flex: 0 0 auto;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+/* Selector de cuantas filas por pagina, en el pie */
+.rows-per-page {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 12px;
+}
+
+.rows-per-page select {
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Cabecera de tabla ordenable: el indicador va detras del rotulo y se
+   apaga hasta que la columna es la activa */
+.data-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.data-table th.sortable .sort-mark {
+  margin-left: 4px;
+  opacity: 0.35;
+  font-size: 10px;
+}
+
+.data-table th.sortable.sorted .sort-mark {
+  opacity: 1;
+  color: var(--color-primary);
+}
+
+/* Columna de seleccion, al principio de la fila */
+.data-table .col-check {
+  width: 36px;
+  text-align: center;
+}
+
+/* Boton apagado: el Clear del panel de filtros cuando no hay nada que limpiar */
+.btn-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* --- Pildoras de grupo: el primer nivel de pestanas de Maintainers en el
+       producto original. Van sobre las sub-pestanas, en una fila propia. --- */
+.tab-group-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tab-group {
+  padding: 7px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-base);
+}
+
+.tab-group.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+
+/* --- Columnas agrupadas de la hoja de perdidas. En el producto original el
+       color dice de que habla la columna sin tener que leer el rotulo: lo
+       perdido en rojo, lo producido en verde, el potencial apagado. Los datos
+       van centrados; solo las columnas base se alinean a la izquierda. --- */
+.data-table th.grp-pot,
+.data-table td.grp-pot,
+.data-table th.grp-prd,
+.data-table td.grp-prd,
+.data-table th.grp-loss,
+.data-table td.grp-loss { text-align: center; }
+.data-table th.grp-prd  { color: var(--color-success); }
+.data-table th.grp-loss { color: var(--color-danger); }
+
+/* --- Settings de proveedores. Medidas del Settings.tsx original: la
+       pantalla acotada a 640, la tarjeta con cabecera separada por una linea,
+       icono de 20 en color primario, titulo de 15/600 y ayuda de 12. --- */
+.settings-narrow { max-width: 640px; }
+
+.provider-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-top: 24px;
+  padding: 0;
+  display: block;
+}
+
+.provider-head {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.provider-head svg {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.provider-help {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: 1px;
+}
+
+.provider-body { padding: 24px; }
+
+.provider-status strong { color: var(--color-text); }
+
+/* La fila del campo y sus botones. Envuelve a proposito: con el ancho
+   acotado a 640 y cuatro botones, sin esto se salen de la tarjeta. */
+.provider-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.provider-form .input { flex: 1; min-width: 220px; }
+
+/* El resultado de probar, con el fondo tenue del original */
+.provider-test {
+  margin-top: 10px;
+  font-size: 12px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+}
+
+/* ============================================================
+   ASISTENTE POR PASOS
+   Medidas del AgentBuilder original: cada paso es un boton con un
+   circulo de 22 numerado, el activo con fondo tenue del primario y
+   el ya hecho con el circulo verde y su marca de visto.
+   ============================================================ */
+
+.stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 400;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+
+.step.done { color: var(--color-text); }
+
+/* El circulo del numero */
+.step-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 2px solid var(--color-border);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.step.active .step-mark {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+.step.done .step-mark {
+  border-color: var(--color-success);
+  background: var(--color-success);
+  color: #ffffff;
+}
+
+/* El cuerpo del asistente: pasos a la izquierda, formulario a la derecha */
+.wizard {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .wizard { grid-template-columns: 1fr; }
+}
+
+/* --- Comparacion de dos ejecuciones, una a cada lado. En pantalla estrecha
+       se apilan: dos columnas de informe en 400px no se leen. --- */
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .compare-grid { grid-template-columns: 1fr; }
+}
+
+.run-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.run-facts { padding: 16px; }
+
+.run-when {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.run-meta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.run-meta strong { color: var(--color-text); }
+
+/* --- Ficha de una fase de agente. Medidas del AgentRunOutput original:
+       cabecera de 10px 14px con el nombre en 13/600, los tokens en 11
+       apagados, y la marca de visto verde cuando la fase termino. La fase en
+       curso lleva borde primario y un fondo apenas teñido. --- */
+.phase-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.phase-card > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--color-surface);
+  cursor: pointer;
+  list-style: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.phase-card > summary::-webkit-details-marker { display: none; }
+
+.phase-card .phase-name { flex: 1; }
+
+.phase-card .phase-tokens {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.phase-card .phase-done { color: var(--color-success); flex-shrink: 0; }
+
+.phase-card .phase-body {
+  padding: 14px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+/* --- Severidad de una alerta. Son los colores del original. --- */
+.sev-critical { color: var(--color-danger); }
+.sev-high     { color: #f97316; }
+.sev-medium   { color: #f59e0b; }
+.sev-low      { color: #3b82f6; }
+.badge.sev-high     { background: rgba(249, 115, 22, 0.12); }
+.badge.sev-medium   { background: var(--color-warning-bg); }
+.badge.sev-low      { background: var(--color-info-bg); }
+
+/* El boton de borrar de una fila: rojo con borde, como el del producto
+   original. En gris plano no se distingue del de editar, y borrar no se
+   deshace. */
+.icon-btn.danger {
+  border: 1px solid var(--color-danger-border, var(--color-danger));
+  color: var(--color-danger);
+  border-radius: var(--radius-sm);
+}
+
+/* --- Formulario de alta y edicion, como las pantallas propias del original:
+       dos columnas, etiqueta encima del campo, y el asterisco de obligatorio
+       en rojo junto al rotulo. --- */
+.form-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 32px;
+  align-items: start;
+  /* Las dos columnas no se estiran a todo el ancho: en una pantalla grande un
+     campo de texto de 700px es incomodo de leer, y el original las acota. */
+  max-width: 1000px;
+}
+
+.form-2col .full { grid-column: 1 / -1; }
+
+@media (max-width: 768px) {
+  .form-2col { grid-template-columns: 1fr; }
+}
+
+/* El asterisco del campo obligatorio */
+.required-mark {
+  color: var(--color-danger);
+  margin-left: 2px;
+}
+
+/* Leyenda del mapa: que color es cada metodo de produccion. El color de cada
+   punto viaja en la variable --dot, para no escribir un estilo en linea. */
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--color-border);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.legend-title {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--dot);
+}
+
+/* La descripcion que va debajo del nombre en el listado de agentes */
+.cell-note {
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  white-space: normal;
+  max-width: 460px;
+}
+
+/* La cabecera de la rejilla de carga: explicacion a la izquierda y «Add Row»
+   a la derecha, dentro de la propia tarjeta */
+.grid-intro {
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px 0;
+  gap: 16px;
+}
+
+.grid-intro p {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* ---------------------------------------------------------------- Perfiles */
+/* La matriz de permisos y las utilidades que necesita. Todo con tokens
+   compartidos: estas clases existen igual en la aplicacion hermana. */
+
+.u-hidden { display: none; }
+.u-small  { font-size: 11px; }
+.u-muted  { color: var(--color-text-muted); }
+
+/* Un boton que se lee como enlace, para las acciones secundarias dentro de una
+   cabecera de tabla, donde un boton con marco descuadraria la fila */
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--color-primary);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.link-btn:hover { color: var(--color-primary-hover); }
+
+.form-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+/* La matriz: la primera columna manda y las de acciones son estrechas, para
+   que quepan las cinco sin scroll horizontal en una pantalla normal */
+.permissions-table th:not(:first-child),
+.permissions-table td:not(:first-child) { width: 84px; }
+
+.permissions-table input[type="checkbox"] { cursor: pointer; }
+
+/* Un submodulo se sangra y se atenua: el arbol tiene que leerse de un vistazo
+   sin necesidad de plegar y desplegar */
+.permissions-table .submodule-row td:first-child {
+  padding-left: 28px;
+  color: var(--color-text-muted);
+}
+
+.permissions-table .module-row td:first-child { font-weight: 500; }
+
+/* El editor de perfiles usa el mismo ritmo y la misma superficie en sus dos
+   bloques: datos generales, matriz de permisos y acciones. */
+.role-editor-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hueco-listado);
+}
+
+.permissions-card {
+  overflow-x: auto;
+}
+
+.role-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.tree-branch {
+  margin-right: 6px;
+  color: var(--color-border);
+}
+
+/* ------------------------------------------------- Acciones de los filtros */
+/* Limpiar y Aplicar van al final de la barra, alineados con la BASE de los
+   campos, no con su etiqueta: los campos son mas altos porque llevan rotulo
+   encima, y alinear por arriba dejaria los botones flotando.
+
+   La altura se iguala a la del selector. Medido antes de tocar nada: el
+   selector daba 32px y el boton 24px, y esos 8px de diferencia se veian como
+   un boton hundido dentro de la fila. */
+.filter-bar .filter-actions {
+  margin-left: auto;
+  flex: 0 0 auto;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+
+/* ------------------------------------------------------- Alturas uniformes */
+/* Las medidas viven aqui y no en tokens.css: ese archivo lo comparten las cinco
+   aplicaciones byte a byte, y esto solo lo usan las dos hermanas. Meterlo alli
+   habria roto la comprobacion de `verificar_estilos.py`. */
+:root {
+  --alto-control: 36px;
+  --alto-control-sm: 32px;
+}
+
+/* Un boton y un campo que van uno al lado del otro tienen que medir lo mismo.
+   Antes no lo hacian, y se veia: medido sobre la pantalla de casos,
+   `.input` daba 35px, `.icon-btn` 31px y cualquier `.btn-sm` 24px. Un boton
+   once pixeles mas bajo que el campo de al lado parece hundido.
+
+   Se fija la altura en vez del relleno porque el relleno depende del tamano de
+   letra, y los botones no usan el mismo que los campos: igualando el relleno
+   seguirian midiendo distinto. Con `min-height` y el contenido centrado, el
+   texto puede crecer sin romper la fila.
+
+   Dos escalones, los que ya usaba la aplicacion:
+     normal  36px  .input  .select  .btn        (formularios, cabeceras)
+     pequeno 32px  .input-sm .select-sm .btn-sm .icon-btn  (filtros, tablas) */
+
+.btn,
+.input,
+.select {
+  min-height: var(--alto-control);
+}
+
+.btn {
+  /* El relleno vertical lo pone la altura; el horizontal se conserva */
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.btn-sm,
+.input-sm,
+.select-sm {
+  min-height: var(--alto-control-sm);
+}
+
+/* El grande conserva el suyo: es el de la pantalla de entrada y el de
+   «Analizar documentos», donde el tamano es parte del mensaje */
+.btn-lg { min-height: 44px; }
+
+/* Un textarea crece con su contenido: fijarle una altura minima de control lo
+   dejaria del tamano de una sola linea */
+.textarea { min-height: 120px; }
+
+/* Empuja al resto del grupo hacia el otro extremo. Sirve para el pie donde
+   «Añadir pregunta» va a la izquierda y las acciones del caso a la derecha:
+   son cosas distintas y no deben leerse como un mismo grupo de tres. */
+.u-push { margin-right: auto; }
+
+/* El panel de alta va sobre la lista y debe respirar igual que las tarjetas
+   entre si. Medido antes de esto: 0px del panel a la primera tarjeta, y 12px
+   entre tarjetas, asi que el formulario se leia pegado al listado. */
+#new-case-form,
+#new-role-panel,
+#new-user-panel {
+  margin-bottom: var(--hueco-listado);
+}

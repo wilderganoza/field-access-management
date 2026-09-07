@@ -1,0 +1,74 @@
+{% set verdict_class = {'APROBADO': 'success', 'RECHAZADO': 'danger', 'PENDIENTE': 'warning'} %}
+
+<div id="history-table" class="card table-card">
+  {% if records %}
+    <div class="table-scroll">
+      <table class="data-table table-actions">
+        <thead>
+          <tr>
+            <th>Solicitud</th>
+            <th style="width: 18%">Caso</th>
+            <th style="width: 12%">Veredicto</th>
+            <th style="width: 15%">Fecha</th>
+            <th style="width: 90px">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in records %}
+            <tr id="row-{{ r.id }}">
+              <td>
+                <a href="/results/{{ r.id }}" class="link-strong">
+                  {{ r.request_name or r.email_subject or 'Sin nombre' }}
+                </a>
+                <span class="row-meta">{{ r.email_from }}</span>
+              </td>
+              <td>{{ r.case_icon }} {{ r.case_name }}</td>
+              <td>
+                <span class="badge {{ verdict_class.get(r.verdict, 'warning') }}">{{ r.verdict }}</span>
+              </td>
+              <td>{{ r.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+              <td>
+                <div class="row-actions">
+                  <a href="/results/{{ r.id }}" class="icon-btn" title="Ver resultados" aria-label="Ver resultados">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </a>
+                  <button class="icon-btn danger"
+                          title="Eliminar" aria-label="Eliminar solicitud"
+                          hx-delete="/history/{{ r.id }}"
+                          hx-target="#row-{{ r.id }}"
+                          hx-swap="outerHTML"
+                          hx-confirm="¿Eliminar «{{ r.request_name or r.email_subject or 'esta solicitud' }}»? No se puede deshacer.">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="table-footer">{{ records|length }} solicitud(es)</p>
+  {% else %}
+    <div class="empty-state">
+      <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <p class="empty-state-title">Sin solicitudes</p>
+      <p class="empty-state-text">
+        {% if filter_search or filter_case or filter_verdict %}
+          Ningún registro coincide con los filtros aplicados.
+        {% else %}
+          Todavía no se ha procesado ninguna solicitud.
+        {% endif %}
+      </p>
+    </div>
+  {% endif %}
+</div>

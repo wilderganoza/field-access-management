@@ -1,0 +1,162 @@
+{% set path = request.url.path %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Work+Sans:wght@500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="{{ asset('css/tokens.css') }}" />
+  <link rel="stylesheet" href="{{ asset('css/app.css') }}" />
+
+  {# Aplicamos el tema antes de pintar para evitar el parpadeo de fondo claro #}
+  <script>
+    (function () {
+      var theme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+      var sidebarOpen = localStorage.getItem('sidebarOpen');
+      document.documentElement.setAttribute('data-sidebar-pref', sidebarOpen === 'false' ? 'closed' : 'open');
+    })();
+  </script>
+
+  <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+
+  {# D3 y la libreria de graficos van solo en las pantallas que los usan;
+     aqui se declaran para que cualquier pantalla nueva los tenga a mano. #}
+  {% block extra_head %}{% endblock %}
+</head>
+{# Sin sesión no se dibuja el marco: el login ocupa la pantalla completa #}
+<body data-sidebar="open" data-context="compliance" data-chrome="{{ 'on' if current_user else 'off' }}">
+
+  {% if current_user %}
+  <header class="app-header">
+    <div class="header-left">
+      <button id="sidebar-toggle-btn" class="icon-btn" aria-label="Alternar menú lateral">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <a href="/" class="header-brand">
+        <svg class="logo" width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h1 class="header-title">{{ app_name }}</h1>
+      </a>
+    </div>
+
+    <div class="header-right">
+      <button id="theme-toggle-btn" class="icon-btn" title="Cambiar tema" aria-label="Cambiar tema">
+        <svg class="icon-sun" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364 6.364-1.414-1.414M7.05 7.05 5.636 5.636m12.728 0-1.414 1.414M7.05 16.95l-1.414 1.414M12 8a4 4 0 100 8 4 4 0 000-8Z" />
+        </svg>
+        <svg class="icon-moon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 12.79A9 9 0 1111.21 3c.4 0 .6.48.33.77A7 7 0 0020.23 12c.29-.27.77-.07.77.33Z" />
+        </svg>
+      </button>
+
+      <div class="user-info">
+        <p class="user-name">{{ current_user.full_name }}</p>
+        <p class="user-role">{{ 'Administrador' if current_user.is_admin else 'Operador' }}</p>
+      </div>
+      <div class="avatar">{{ (current_user.full_name or current_user.email)[0]|upper }}</div>
+      <form method="post" action="/logout">
+        <button type="submit" class="icon-btn" title="Cerrar sesión" aria-label="Cerrar sesión">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+        </button>
+      </form>
+    </div>
+  </header>
+
+  <aside class="app-sidebar">
+    <nav class="sidebar-nav">
+      {% set nav_sections = [
+        ('Operación', [
+          ('Nueva solicitud', '/', 'requests', 'M12 4v16m8-8H4'),
+          ('Historial', '/history', 'history', 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'),
+        ]),
+        ('Configuración', [
+          ('Configuración', '/settings', 'prompts', 'M12 15.5A3.5 3.5 0 1112 8a3.5 3.5 0 010 7.5Zm0-12v2m0 12v2m8.5-8.5h-2m-13 0h-2m14.51-6.01-1.42 1.42M7.41 16.59l-1.42 1.42m12.02 0-1.42-1.42M7.41 5.41 5.99 3.99'),
+          ('Casos', '/cases', 'cases', 'M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7Z'),
+          ('Prompts', '/prompts', 'prompts', 'M12 3v3m-6 4h12a2 2 0 012 2v5a3 3 0 01-3 3H7a3 3 0 01-3-3v-5a2 2 0 012-2Z'),
+        ])
+      ] %}
+
+      {% for section_label, items in nav_sections %}
+        <p class="sidebar-section-label">{{ section_label }}</p>
+        {# Cada entrada se ofrece solo si el perfil ve ese modulo o alguno de
+           sus submodulos. Es la misma regla que en la app hermana. #}
+        {% for label, href, modulo, icon in items if ve_algo(current_user, modulo) %}
+          <a href="{{ href }}" class="nav-item {{ 'active' if path == href else '' }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ icon }}" />
+            </svg>
+            <span>{{ label }}</span>
+          </a>
+        {% endfor %}
+      {% endfor %}
+
+      {% if ve_algo(current_user, 'admin/users') or ve_algo(current_user, 'admin/roles') %}
+        <p class="sidebar-section-label">Administración</p>
+        <a href="/admin/users" class="nav-item {{ 'active' if path.startswith('/admin/users') or path.startswith('/users') else '' }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <span>Usuarios</span>
+        </a>
+        <a href="/admin/roles" class="nav-item {{ 'active' if path.startswith('/admin/roles') else '' }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Perfiles</span>
+        </a>
+      {% endif %}
+    </nav>
+  </aside>
+  {% endif %}
+
+  <main class="app-main">
+    {% block content %}{% endblock %}
+  </main>
+
+  {# Confirmación propia para todas las acciones HTMX; sustituye el cuadro nativo
+     del navegador que generan los atributos hx-confirm. #}
+  <div class="app-modal app-modal-confirm" id="confirm-modal" hidden
+       role="alertdialog" aria-modal="true"
+       aria-labelledby="confirm-modal-title" aria-describedby="confirm-modal-message"
+       data-modal-overlay>
+    <div class="modal-dialog modal-dialog-sm">
+      <div class="modal-header">
+        <h2 class="card-title" id="confirm-modal-title">Confirmar acción</h2>
+        <button type="button" class="icon-btn" data-modal-close aria-label="Cerrar">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-modal-message"></p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sm" data-modal-close>Cancelar</button>
+        <button type="button" class="btn btn-sm btn-danger" id="confirm-modal-accept">
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="{{ asset('js/app.js') }}" defer></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

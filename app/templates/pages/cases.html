@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Casos · {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row">
+    <div>
+      <h1 class="page-title">Casos de validación</h1>
+      <p class="page-subtitle">Cada caso define el checklist que la IA evalúa</p>
+    </div>
+    <button class="btn btn-sm btn-primary" id="new-case-btn">Nuevo caso</button>
+  </div>
+</div>
+
+<div id="error-zone"></div>
+
+{# Formulario de alta, oculto hasta que se pulsa "Nuevo caso" #}
+<form id="new-case-form" class="card" hidden
+      hx-post="/cases"
+      hx-target="#cases-list"
+      hx-swap="outerHTML">
+
+  <h2 class="card-title">Nuevo caso</h2>
+
+  <div class="field-row">
+    <div class="form-group" style="flex: 2">
+      <label for="nuevo-nombre">Nombre</label>
+      <input class="input" type="text" id="nuevo-nombre" name="name" required
+             placeholder="Ej. Personal de contratista" />
+    </div>
+    <div class="form-group" style="width: 90px">
+      <label for="nuevo-icono">Icono</label>
+      <input class="input" type="text" id="nuevo-icono" name="icon" value="📋" maxlength="4" />
+    </div>
+    <div class="form-group" style="width: 90px">
+      <label for="nuevo-color">Color</label>
+      <input class="input input-color" type="color" id="nuevo-color" name="color" value="#4a7cff" />
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="nueva-descripcion">Descripción</label>
+    <input class="input" type="text" id="nueva-descripcion" name="description"
+           placeholder="Qué habilita este caso" />
+  </div>
+
+  <div class="form-group">
+    <label>Checklist</label>
+    <div class="checklist-editor" data-editor>
+      <div class="checklist-row">
+        <input class="input" type="text" name="questions" placeholder="¿El documento está vigente?" />
+        <button type="button" class="icon-btn danger" data-quitar aria-label="Quitar pregunta">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-footer">
+    <button type="button" class="btn btn-sm u-push" data-agregar>Añadir pregunta</button>
+
+    <button type="button" class="btn btn-sm" id="cancel-case-btn">Cancelar</button>
+    <button type="submit" class="btn btn-sm btn-primary">Crear caso</button>
+  </div>
+</form>
+
+{% include "partials/cases_list.html" %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  "use strict";
+
+  const formNuevo = document.getElementById("new-case-form");
+  const btnNuevo = document.getElementById("new-case-btn");
+  const btnCancelar = document.getElementById("cancel-case-btn");
+
+  btnNuevo.addEventListener("click", function () {
+    formNuevo.hidden = false;
+    document.getElementById("nuevo-nombre").focus();
+  });
+
+  btnCancelar.addEventListener("click", function () {
+    formNuevo.hidden = true;
+    formNuevo.reset();
+  });
+
+  // El editor de checklist se delega en el documento porque HTMX reemplaza
+  // la lista de casos entera y los nodos cambian de identidad.
+  document.addEventListener("click", function (e) {
+    const agregar = e.target.closest("[data-agregar]");
+    if (agregar) {
+      // El editor se busca por su marcador dentro del MISMO formulario, no
+      // por la posicion del boton. Antes era `previousElementSibling`, que
+      // valia solo mientras el boton estuviera pegado debajo del editor: al
+      // bajarlo al pie de la tarjeta dejo de encontrarlo y el boton no hacia
+      // nada. Atarlo al marcador lo hace independiente de donde se coloque.
+      const contenedor = agregar.closest("form") || document;
+      const editor = contenedor.querySelector("[data-editor]");
+
+      // Si la tarjeta no trae editor no hay donde anadir, y es mejor no hacer
+      // nada que reventar con un error de null
+      if (!editor) {
+        return;
+      }
+
+      const fila = document.createElement("div");
+      fila.className = "checklist-row";
+      fila.innerHTML =
+        '<input class="input" type="text" name="questions" placeholder="Nueva pregunta" />' +
+        '<button type="button" class="icon-btn danger" data-quitar aria-label="Quitar pregunta">✕</button>';
+      editor.appendChild(fila);
+      fila.querySelector("input").focus();
+      return;
+    }
+
+    const quitar = e.target.closest("[data-quitar]");
+    if (quitar) {
+      const editor = quitar.closest("[data-editor]");
+      // Siempre dejamos al menos una fila: un caso sin preguntas no es válido
+      if (editor.querySelectorAll(".checklist-row").length > 1) {
+        quitar.closest(".checklist-row").remove();
+      } else {
+        editor.querySelector("input").value = "";
+      }
+    }
+  });
+
+  // Cerramos el formulario de alta cuando la creación fue exitosa
+  document.body.addEventListener("htmx:afterRequest", function (e) {
+    if (e.target === formNuevo && e.detail.successful) {
+      formNuevo.hidden = true;
+      formNuevo.reset();
+    }
+  });
+})();
+</script>
+{% endblock %}

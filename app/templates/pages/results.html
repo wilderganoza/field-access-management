@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}{{ record.request_name or 'Resultados' }} · {{ app_name }}{% endblock %}
+
+{% set verdict_class = {'APROBADO': 'success', 'RECHAZADO': 'danger', 'PENDIENTE': 'warning'} %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row">
+    <div>
+      <h1 class="page-title">{{ record.request_name or 'Solicitud sin nombre' }}</h1>
+      <p class="page-subtitle">
+        {{ record.case_icon }} {{ record.case_name }} ·
+        {{ record.created_at.strftime('%d/%m/%Y, %H:%M') }} h
+      </p>
+    </div>
+    <a href="/" class="btn btn-sm">Nueva solicitud</a>
+  </div>
+</div>
+
+{# Banda de veredicto con borde lateral de 4 px, como indica la guía #}
+<div class="verdict-banner {{ verdict_class.get(record.verdict, 'warning') }}">
+  <div class="verdict-icon">
+    {% if record.verdict == 'APROBADO' %}
+      <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    {% elif record.verdict == 'RECHAZADO' %}
+      <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M10 14l4-4m0 4l-4-4m11 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    {% else %}
+      <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    {% endif %}
+  </div>
+  <div>
+    <p class="verdict-label">Veredicto</p>
+    <p class="verdict-value">{{ record.verdict }}</p>
+  </div>
+</div>
+
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="resumen" role="tab">Resumen</button>
+  <button class="tab-btn" data-tab="checklist" role="tab">Checklist</button>
+  <button class="tab-btn" data-tab="documentos" role="tab">Documentos</button>
+  <button class="tab-btn" data-tab="correo" role="tab">Correo</button>
+</div>
+
+{# ---------------------------------------------------------------- Resumen #}
+<section class="tab-panel active" data-panel="resumen">
+  <div class="card">
+    {% if record.summary %}
+      <div class="markdown">{{ record.summary | markdown }}</div>
+    {% else %}
+      <div class="empty-state">
+        <p class="empty-state-title">Sin resumen</p>
+        <p class="empty-state-text">El análisis no devolvió un resumen ejecutivo.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{# -------------------------------------------------------------- Checklist #}
+<section class="tab-panel" data-panel="checklist">
+  {% for name, results in people.items() %}
+    {% set aprobados = results | selectattr('result', 'equalto', 'APROBADO') | list | length %}
+    {% set rechazados = results | selectattr('result', 'equalto', 'RECHAZADO') | list | length %}
+    {% set pendientes = results | selectattr('result', 'equalto', 'PENDIENTE') | list | length %}
+
+    <details class="card person-card" {% if loop.first %}open{% endif %}>
+      <summary class="person-header">
+        <span class="person-title">{{ name }}</span>
+        <span class="person-badges">
+          {% if aprobados %}<span class="badge success">{{ aprobados }} aprobados</span>{% endif %}
+          {% if pendientes %}<span class="badge warning">{{ pendientes }} pendientes</span>{% endif %}
+          {% if rechazados %}<span class="badge danger">{{ rechazados }} rechazados</span>{% endif %}
+        </span>
+      </summary>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width: 45%">Requisito</th>
+            <th style="width: 15%">Resultado</th>
+            <th>Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in results %}
+            <tr>
+              <td>{{ r.question }}</td>
+              <td>
+                <span class="badge {{ verdict_class.get(r.result, 'warning') }}">{{ r.result }}</span>
+              </td>
+              <td class="cell-wrap">{{ r.explanation or '—' }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </details>
+  {% else %}
+    <div class="card">
+      <div class="empty-state">
+        <p class="empty-state-title">Sin resultados</p>
+        <p class="empty-state-text">El análisis no identificó personas ni vehículos.</p>
+      </div>
+    </div>
+  {% endfor %}
+</section>
+
+{# ------------------------------------------------------------- Documentos #}
+<section class="tab-panel" data-panel="documentos">
+  <div class="card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Archivo</th>
+          <th style="width: 12%">Tipo</th>
+          <th style="width: 12%">Tamaño</th>
+          <th style="width: 16%">Estado</th>
+          <th style="width: 12%" class="u-right">Documento</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in record.files %}
+          <tr>
+            <td>{{ f.name }}</td>
+            <td>{{ f.file_type }}</td>
+            <td>{{ (f.size_bytes / 1024) | round | int ~ ' KB' if f.size_bytes else '—' }}</td>
+            <td>
+              {% if f.storage_path %}
+                <span class="badge success">Conservado</span>
+              {% else %}
+                <span class="badge neutral">Solo analizado</span>
+              {% endif %}
+            </td>
+            <td class="u-right">
+              {# El enlace solo aparece si el archivo se conservó Y el perfil
+                 puede descargarlo. Ofrecerlo sin permiso solo lleva a un 403. #}
+              {% if f.storage_path and puede(current_user, 'history', 'download') %}
+                <a class="btn btn-sm" href="/history/files/{{ f.id }}" target="_blank" rel="noopener">
+                  Abrir
+                </a>
+              {% else %}
+                <span class="u-muted">—</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{# ------------------------------------------------------------------ Correo #}
+<section class="tab-panel" data-panel="correo">
+  <div class="card">
+    <dl class="meta-list">
+      <dt>Remitente</dt><dd>{{ record.email_from }}</dd>
+      <dt>Destinatario</dt><dd>{{ record.email_to }}</dd>
+      <dt>Asunto</dt><dd>{{ record.email_subject }}</dd>
+      <dt>Fecha</dt><dd>{{ record.email_date }}</dd>
+    </dl>
+    {% if record.email_body %}
+      <pre class="email-body">{{ record.email_body }}</pre>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  "use strict";
+  const botones = document.querySelectorAll(".tab-btn");
+  const paneles = document.querySelectorAll(".tab-panel");
+
+  botones.forEach(function (boton) {
+    boton.addEventListener("click", function () {
+      const destino = boton.dataset.tab;
+      botones.forEach(function (b) { b.classList.toggle("active", b === boton); });
+      paneles.forEach(function (p) { p.classList.toggle("active", p.dataset.panel === destino); });
+    });
+  });
+})();
+</script>
+{% endblock %}

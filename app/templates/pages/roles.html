@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Perfiles · {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row">
+    <div>
+      <h1 class="page-title">Perfiles</h1>
+      <p class="page-subtitle">
+        Qué puede hacer cada perfil en cada módulo: ver, crear, editar, eliminar y descargar.
+      </p>
+    </div>
+    <button class="btn btn-sm btn-primary" id="new-role-btn">Nuevo perfil</button>
+  </div>
+</div>
+
+{# El alta va en un panel plegado: la pantalla es para revisar los perfiles que
+   ya hay, no para crear uno cada vez que se entra. #}
+<div class="card u-hidden" id="new-role-panel">
+  <div class="card-header">
+    <h2 class="card-title">Nuevo perfil</h2>
+  </div>
+
+  <form class="form-3col"
+        hx-post="/admin/roles"
+        hx-target="#roles-table"
+        hx-swap="outerHTML">
+
+    <div class="form-group">
+      <label for="role-key">Clave <span class="required">*</span></label>
+      <input class="input" type="text" id="role-key" name="key" required
+             placeholder="supervisor" pattern="[a-z0-9-]+"
+             title="Solo minúsculas, números y guiones" />
+      <small class="form-hint">No cambia aunque se renombre el perfil.</small>
+    </div>
+
+    <div class="form-group">
+      <label for="role-name">Nombre <span class="required">*</span></label>
+      <input class="input" type="text" id="role-name" name="name" required
+             placeholder="Supervisor de campo" />
+    </div>
+
+    <div class="form-group full">
+      <label for="role-description">Descripción</label>
+      <input class="input" type="text" id="role-description" name="description"
+             placeholder="Para qué sirve este perfil, en una frase." />
+    </div>
+
+    <div class="form-actions full">
+      <button type="button" class="btn btn-sm" id="cancel-role-btn">Cancelar</button>
+      <button type="submit" class="btn btn-sm btn-primary">Crear perfil</button>
+    </div>
+  </form>
+</div>
+
+{% include "partials/roles_table.html" %}
+
+<script>
+  // El panel de alta se abre desde el botón de la cabecera. Es lo mismo que
+  // hace la pantalla de usuarios, para que las dos se comporten igual.
+  (function () {
+    var abrir = document.getElementById('new-role-btn');
+    var panel = document.getElementById('new-role-panel');
+    var cerrar = document.getElementById('cancel-role-btn');
+
+    if (!abrir || !panel) return;
+
+    abrir.addEventListener('click', function () {
+      panel.classList.toggle('u-hidden');
+    });
+
+    if (cerrar) {
+      cerrar.addEventListener('click', function () {
+        panel.classList.add('u-hidden');
+      });
+    }
+  })();
+</script>
+{% endblock %}

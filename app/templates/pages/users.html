@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Usuarios · {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row">
+    <div>
+      <h1 class="page-title">Usuarios</h1>
+      <p class="page-subtitle">
+        Cuentas de la aplicación. El perfil decide qué puede hacer cada una en cada módulo.
+      </p>
+    </div>
+    <button type="button" class="btn btn-sm btn-primary"
+            data-modal-open="new-user-dialog">Nueva cuenta</button>
+  </div>
+</div>
+
+<div class="app-modal" id="new-user-dialog" hidden
+     role="dialog" aria-modal="true" aria-labelledby="new-user-title"
+     data-modal-overlay>
+  <div class="modal-dialog">
+    <form class="modal-form"
+        hx-post="/users"
+        hx-target="#users-table"
+        hx-swap="outerHTML">
+
+    <div class="modal-header">
+      <h2 class="card-title" id="new-user-title">Nueva cuenta</h2>
+      <button type="button" class="icon-btn" data-modal-close aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="modal-body user-form-grid">
+      <div class="form-group">
+        <label for="new-email">Correo <span class="required">*</span></label>
+        <input class="input" type="email" id="new-email" name="email" required />
+      </div>
+
+      <div class="form-group">
+        <label for="new-username">Usuario</label>
+        <input class="input" type="text" id="new-username" name="username"
+               placeholder="Se deduce del correo si se deja vacío" />
+      </div>
+
+      <div class="form-group">
+        <label for="new-role">Perfil <span class="required">*</span></label>
+        <select class="select" id="new-role" name="role_id" required>
+          <option value="">Elige un perfil…</option>
+          {% for r in roles %}
+            <option value="{{ r.id }}">{{ r.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="new-name">Nombre completo</label>
+        <input class="input" type="text" id="new-name" name="full_name" />
+      </div>
+
+      <div class="form-group">
+        <label for="new-dept">Área</label>
+        <input class="input" type="text" id="new-dept" name="department" />
+      </div>
+
+      <div class="form-group">
+        <label for="new-pos">Cargo</label>
+        <input class="input" type="text" id="new-pos" name="position" />
+      </div>
+
+      {# No hay campo de contraseña a propósito: la genera el servidor y se
+         enseña una sola vez al crear la cuenta. #}
+      <div class="status-message info user-form-full" role="status">
+        <span>
+          La contraseña inicial la genera el servidor y se muestra una sola vez al crear
+          la cuenta. Su dueño deberá cambiarla al entrar.
+        </span>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn btn-sm" data-modal-close>Cancelar</button>
+      <button type="submit" class="btn btn-sm btn-primary">Crear cuenta</button>
+    </div>
+    </form>
+  </div>
+</div>
+
+{% include "partials/users_table.html" %}
+{% endblock %}

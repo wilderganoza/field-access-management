@@ -1,0 +1,54 @@
+<div id="openai-settings-panel" class="card settings-narrow">
+  <div>
+    <h2 class="section-title">IA</h2>
+    <p class="page-subtitle">Credencial utilizada para analizar los documentos.</p>
+  </div>
+
+  {% if configured %}
+    <div class="status-message success" role="status">
+      La API key está configurada y lista para usarse
+      {% if source == 'servidor' %} desde el servidor{% endif %}.
+    </div>
+  {% else %}
+    <div class="status-message warning" role="status">
+      La API key todavía no está configurada. Los análisis permanecerán deshabilitados.
+    </div>
+  {% endif %}
+
+  {% if error %}
+    <div class="status-message error" role="alert">{{ error }}</div>
+  {% endif %}
+
+  <form hx-post="/settings/openai"
+        hx-target="#openai-settings-panel"
+        hx-swap="outerHTML">
+    <div class="form-group">
+      <label for="openai_api_key">API key de IA</label>
+      <input class="input" type="password" id="openai_api_key" name="api_key"
+             autocomplete="new-password" spellcheck="false"
+             placeholder="{{ 'Ingresa una nueva clave para reemplazar la actual' if configured else 'sk-…' }}" />
+      <p class="form-hint">
+        Por seguridad, la clave guardada nunca se muestra. Déjala vacía para conservarla.
+      </p>
+    </div>
+
+    <div class="form-group">
+      <label for="ia_model">Modelo de IA</label>
+      <select class="input" id="ia_model" name="model" required>
+        {% for model in models %}
+          <option value="{{ model.id }}" {{ 'selected' if model.id == selected_model else '' }}>
+            {{ model.name }} — {{ model.description }}
+          </option>
+        {% endfor %}
+      </select>
+      <p class="form-hint">
+        Todos admiten documentos e imágenes y tienen aproximadamente 1 millón de tokens de contexto.
+        El razonamiento está desactivado.
+      </p>
+    </div>
+
+    <div class="card-footer">
+      <button type="submit" class="btn btn-primary">Guardar configuración</button>
+    </div>
+  </form>
+</div>
